@@ -1,0 +1,13 @@
+package com.ngarden.hida;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HidaApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HidaApplication.class, args);
+	}
+
+}
