@@ -21,8 +21,8 @@ public class DiaryEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long diaryId;
 
-    @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "diary_date")
+    private LocalDate diaryDate;
 
     @Column(name = "title")
     private String title;
@@ -41,5 +41,5 @@ public class DiaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
-    private UserEntity user;
+    private UserEntity userId;
 }
