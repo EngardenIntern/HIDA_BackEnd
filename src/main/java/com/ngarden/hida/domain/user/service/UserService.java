@@ -9,4 +9,6 @@ public interface UserService {
     UserEntity createUser(UserCreateRequest userCreateRequest);
 
     List<UserEntity> selectAllUser();
+
+    UserEntity findById(Long userId);
 }

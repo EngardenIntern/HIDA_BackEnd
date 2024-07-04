@@ -14,6 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiaryListResponse {
-    private List<DiaryEntity> diaryEntityList;
-    private UserEntity userEntity;
+    private List<DiaryDailyResponse> diaryDailyResponseList;
+    private String userName;
 }

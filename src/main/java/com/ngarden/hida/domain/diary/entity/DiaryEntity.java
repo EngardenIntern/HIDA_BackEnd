@@ -31,7 +31,7 @@ public class DiaryEntity {
     private String detail;
 
     @Column(name = "AI_status")
-    private Boolean aiStatus;
+    private Boolean aiStatus = Boolean.FALSE;
 
     @Column(name = "summary")
     private String summary;
@@ -41,5 +41,5 @@ public class DiaryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
-    private UserEntity userId;
+    private UserEntity user;
 }
