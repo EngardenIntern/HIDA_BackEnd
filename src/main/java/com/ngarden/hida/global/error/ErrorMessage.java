@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Builder
 public class ErrorMessage {
     private int status;
-    private String error;
     private String message;
     private final LocalDateTime timeStamp;
 }
