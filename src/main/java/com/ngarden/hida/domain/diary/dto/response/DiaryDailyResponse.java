@@ -19,5 +19,5 @@ public class DiaryDailyResponse {
     private Boolean aiStatus;
     private String summary;
     private String comment;
-    private UserEntity userEntity;
+    private String userName;
 }

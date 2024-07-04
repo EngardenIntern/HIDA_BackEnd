@@ -2,12 +2,14 @@ package com.ngarden.hida.domain.user.controller;
 
 import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
 import com.ngarden.hida.domain.user.dto.response.UserCreateResponse;
+import com.ngarden.hida.domain.user.dto.response.UserResponse;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -32,10 +34,19 @@ public class UserController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<UserEntity>> selectAllUser()
+    public ResponseEntity<List<UserResponse>> selectAllUser()
     {
         List<UserEntity> userEntityList = userService.selectAllUser();
+        List<UserResponse> userResponseList = new ArrayList<>();
 
-        return ResponseEntity.ok().body(userEntityList);
+        for(UserEntity userEntity : userEntityList){
+            UserResponse userResponse = UserResponse.builder()
+                    .userName(userEntity.getUserName())
+                    .userStatus(userEntity.getUserStatus())
+                    .build();
+            userResponseList.add(userResponse);
+        }
+
+        return ResponseEntity.ok().body(userResponseList);
     }
 }

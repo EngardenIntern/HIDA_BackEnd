@@ -31,6 +31,9 @@ public class UserEntity extends BasicEntity {
     @Column(name = "outh_id")
     private Long outhId;
 
-    @OneToMany(mappedBy = "userId", fetch = FetchType.LAZY)
+    @Column(name = "user_status")
+    private Boolean userStatus = Boolean.FALSE;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<DiaryEntity> diaryEntityList;
 }

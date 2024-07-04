@@ -2,16 +2,15 @@ package com.ngarden.hida.domain.diary.controller;
 
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
+import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
 import com.ngarden.hida.domain.diary.service.DiaryService;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -20,15 +19,13 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class DiaryController {
     private final DiaryService diaryService;
-    private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<DiaryEntity> createDiary(
+    public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
-            ){
+    ){
         DiaryEntity diaryEntity = diaryService.createDiary(diaryCreateRequest);
 
-        UserEntity userEntity = userService.find
         DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
                 .date(LocalDate.now())
                 .title(diaryEntity.getTitle())
@@ -36,8 +33,28 @@ public class DiaryController {
                 .aiStatus(Boolean.FALSE)
                 .summary(null)
                 .comment(null)
-                .userEntity(UserEntity.builder().userName().build()).build();
+                .userName(diaryEntity.getUser().getUserName()).build();
 
+        return ResponseEntity.ok().body(diaryDailyResponse);
+    }
+
+    @GetMapping("/{userId}/{date}")
+    public ResponseEntity<DiaryDailyResponse> getDiaryDaily(
+            @PathVariable("userId") Long userId,
+            @PathVariable("date") LocalDate date
+    ){
+        DiaryDailyResponse diaryDailyResponse = diaryService.getDiaryDaily(userId, date);
+
+        return ResponseEntity.ok().body(diaryDailyResponse);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<DiaryListResponse> getDiaryList(
+            @PathVariable("userId") Long userId
+    ){
+        DiaryListResponse diaryListResponse = diaryService.getDiaryList(userId);
+
+        return ResponseEntity.ok().body(diaryListResponse);
     }
 
 }
