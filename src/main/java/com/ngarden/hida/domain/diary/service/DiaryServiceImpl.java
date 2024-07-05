@@ -7,9 +7,12 @@ import com.ngarden.hida.domain.diary.entity.DiaryEntity;
 import com.ngarden.hida.domain.diary.repository.DiaryRepository;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
+import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunRequest;
+import com.ngarden.hida.externalapi.chatGPT.service.GPTService;
 import com.ngarden.hida.global.error.NoExistException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,6 +26,8 @@ import java.util.Optional;
 public class DiaryServiceImpl implements DiaryService{
     private final DiaryRepository diaryRepository;
     private final UserRepository userRepository;
+    private final GPTService gptService;
+
 
     @Override
     public DiaryEntity createDiary(DiaryCreateRequest diaryCreateRequest) {
@@ -31,12 +36,13 @@ public class DiaryServiceImpl implements DiaryService{
         if(userEntity.isEmpty()){
             throw new NoExistException("유저 정보가 없습니다.");
         }
-
         DiaryEntity diaryEntity = DiaryEntity.builder()
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
                 .user(userEntity.get())
                 .build();
+
+
         return diaryRepository.save(diaryEntity);
     }
 
