@@ -36,9 +36,11 @@ public class GPTController {
     private String assistantId;
     private final ChatGPTConfig chatGPTConfig;
 
-    @GetMapping()
-    public ResponseEntity<CreateThreadAndRunResponse> createThread(){
-        CreateThreadAndRunRequest request = gptService.generateThreadAndRun(assistantId);
+    @PostMapping()
+    public ResponseEntity<CreateThreadAndRunResponse> createThread(
+            @RequestBody() String message
+    ){
+        CreateThreadAndRunRequest request = gptService.generateThreadAndRun(assistantId, message);
         CreateThreadAndRunResponse response = null;
 
         HttpHeaders headers = chatGPTConfig.httpHeaders();

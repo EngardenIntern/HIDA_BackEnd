@@ -38,7 +38,7 @@ public class DiaryController {
         DiaryEntity diaryEntity = diaryService.createDiary(diaryCreateRequest);
 
 
-        CreateThreadAndRunRequest AIRequest =  gptService.generateThreadAndRun(assistantId);
+        CreateThreadAndRunRequest AIRequest =  gptService.generateThreadAndRun(assistantId, diaryEntity.getDetail());
         Optional<CreateThreadAndRunResponse> AIResponse = Optional.ofNullable(gptService.createThreadAndRun(AIRequest));
         if(AIResponse.isEmpty()){
             throw new RuntimeException();

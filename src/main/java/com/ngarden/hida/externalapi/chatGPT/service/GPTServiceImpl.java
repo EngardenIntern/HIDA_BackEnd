@@ -117,9 +117,11 @@ public class GPTServiceImpl implements GPTService{
     }
 
     @Override
-    public CreateThreadAndRunRequest generateThreadAndRun(String assistantId) {
+    public CreateThreadAndRunRequest generateThreadAndRun(String assistantId, String diaryDetail) {
 
         List<Chatmessage> chatmessageList = new ArrayList<>();
+
+        String prompt = "Generate message, prompt is \"" + diaryDetail + "\".";
 
         Chatmessage chatmessage = Chatmessage.builder()
                 .role("user")
