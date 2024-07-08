@@ -11,6 +11,8 @@ import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunReques
 import com.ngarden.hida.externalapi.chatGPT.dto.response.CreateThreadAndRunResponse;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.externalapi.chatGPT.service.GPTService;
+import com.ngarden.hida.global.config.SemaConfig;
+import com.ngarden.hida.global.error.NoExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.Local;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Semaphore;
 
 @RestController
 @RequestMapping("api/v1/diary")
@@ -27,6 +30,7 @@ import java.util.Optional;
 public class DiaryController {
     private final DiaryService diaryService;
     private final GPTService gptService;
+    private final SemaConfig semaConfig;
 
     @Value("${OPENAI.ASSISTANT-ID}")
     private String assistantId;
@@ -35,24 +39,40 @@ public class DiaryController {
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
     ){
+        List<MessageResponse> messageResponseList = List.of();
         DiaryEntity diaryEntity = diaryService.createDiary(diaryCreateRequest);
-
-
-        CreateThreadAndRunRequest AIRequest =  gptService.generateThreadAndRun(assistantId, diaryEntity.getDetail());
-        Optional<CreateThreadAndRunResponse> AIResponse = Optional.ofNullable(gptService.createThreadAndRun(AIRequest));
-        if(AIResponse.isEmpty()){
-            throw new RuntimeException();
-        }
+        Semaphore semaphore = semaConfig.semaphore();
+        CreateThreadAndRunResponse AIResponse = null;
 
         try {
-            Thread.sleep(10000);
+            semaphore.acquire();
+            CreateThreadAndRunRequest AIRequest = gptService.generateThreadAndRun(assistantId, diaryEntity.getDetail());
+            Optional<CreateThreadAndRunResponse> GPTAIResponse = Optional.ofNullable(gptService.createThreadAndRun(AIRequest));
+            if (GPTAIResponse.isEmpty()) {
+                throw new NoExistException("GPTAIResponse가 없습니다.");
+            }
+            AIResponse = GPTAIResponse.get();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+        } finally {
+            semaphore.release();
+        }
+        try {
+            semaphore.acquire();
+            while(Boolean.TRUE) {
+                Thread.sleep(500);
+                messageResponseList = gptService.getListMessage(AIResponse.getThreadId());
+                if (!(messageResponseList.isEmpty() || messageResponseList.get(0).getMessage() == null)) {
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            System.out.println("getListMessage 세마포어 끝");
+            semaphore.release();
         }
 
-        List<MessageResponse> messageResponseList = gptService.getListMessage(AIResponse.get().getThreadId());
-
-        System.out.println("messageList: " + messageResponseList.toString());
         String message = String.valueOf(messageResponseList.get(0));
 
         DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
