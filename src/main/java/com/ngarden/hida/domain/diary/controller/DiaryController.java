@@ -4,6 +4,7 @@ import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
+import com.ngarden.hida.domain.diary.repository.DiaryRepository;
 import com.ngarden.hida.domain.diary.service.DiaryService;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
@@ -15,7 +16,6 @@ import com.ngarden.hida.global.config.SemaConfig;
 import com.ngarden.hida.global.error.NoExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,60 +29,41 @@ import java.util.concurrent.Semaphore;
 @RequiredArgsConstructor
 public class DiaryController {
     private final DiaryService diaryService;
-    private final GPTService gptService;
-    private final SemaConfig semaConfig;
+    private final UserService userService;
 
-    @Value("${OPENAI.ASSISTANT-ID}")
-    private String assistantId;
+    @Value("${OPENAI.ASSISTANT-ID.COMMENT}")
+    private String commentAssistantId;
+
+    @Value("${OPENAI.ASSISTANT-ID.SUMMARY}")
+    private String summaryAssistantId;
 
     @PostMapping
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
     ){
-        List<MessageResponse> messageResponseList = List.of();
-        DiaryEntity diaryEntity = diaryService.createDiary(diaryCreateRequest);
-        Semaphore semaphore = semaConfig.semaphore();
-        CreateThreadAndRunResponse AIResponse = null;
+        MessageResponse commentResponse =  diaryService.createDiaryByGpt(diaryCreateRequest, commentAssistantId);
+        MessageResponse summaryResponse = diaryService.createDiaryByGpt(diaryCreateRequest, summaryAssistantId);
 
-        try {
-            semaphore.acquire();
-            CreateThreadAndRunRequest AIRequest = gptService.generateThreadAndRun(assistantId, diaryEntity.getDetail());
-            Optional<CreateThreadAndRunResponse> GPTAIResponse = Optional.ofNullable(gptService.createThreadAndRun(AIRequest));
-            if (GPTAIResponse.isEmpty()) {
-                throw new NoExistException("GPTAIResponse가 없습니다.");
-            }
-            AIResponse = GPTAIResponse.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            semaphore.release();
+        diaryCreateRequest.setAiStatus(Boolean.TRUE);
+        diaryCreateRequest.setComment(commentResponse.getMessage());
+        diaryCreateRequest.setSummary(summaryResponse.getMessage());
+
+        diaryService.saveDiary(diaryCreateRequest);
+
+        Optional<UserEntity> userEntity = Optional.ofNullable(userService.findById(diaryCreateRequest.getUserId()));
+        if(userEntity.isEmpty()){
+            throw new NoExistException("유저가 없습니다.");
         }
-        try {
-            semaphore.acquire();
-            while(Boolean.TRUE) {
-                Thread.sleep(500);
-                messageResponseList = gptService.getListMessage(AIResponse.getThreadId());
-                if (!(messageResponseList.isEmpty() || messageResponseList.get(0).getMessage() == null)) {
-                    break;
-                }
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            System.out.println("getListMessage 세마포어 끝");
-            semaphore.release();
-        }
-
-        String message = String.valueOf(messageResponseList.get(0));
-
         DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
-                .date(LocalDate.now())
-                .title(diaryEntity.getTitle())
-                .detail(diaryEntity.getDetail())
-                .aiStatus(Boolean.TRUE)
-                .summary(null)
-                .comment(messageResponseList.get(0).getMessage())
-                .userName(diaryEntity.getUser().getUserName()).build();
+                .date(diaryCreateRequest.getDiaryDate())
+                .title(diaryCreateRequest.getTitle())
+                .detail(diaryCreateRequest.getDetail())
+                .aiStatus(diaryCreateRequest.getAiStatus())
+                .summary(diaryCreateRequest.getSummary())
+                .comment(diaryCreateRequest.getComment())
+                .userName(userEntity.get().getUserName())
+                .diaryDate(diaryCreateRequest.getDiaryDate())
+                .build();
 
         return ResponseEntity.ok().body(diaryDailyResponse);
     }

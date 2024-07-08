@@ -84,7 +84,6 @@ public class GPTServiceImpl implements GPTService{
             log.debug("RuntimeException :: " + e.getMessage());
         }
         log.debug("result: " + result.toString());
-        System.out.println("result: " + result);
 
         List<Map<String, Object>> dataList = (List<Map<String, Object>>) result.get("data");
         log.debug("dataList" + dataList.toString());
@@ -107,12 +106,8 @@ public class GPTServiceImpl implements GPTService{
                 Map<String, Object> text = (Map<String, Object>) content.get("text");
                 messageResponse.setMessage(text.get("value").toString());
             }
-            System.out.println("messageResponse: " + messageResponse);
             messageResponseList.add(messageResponse);
         }
-
-        System.out.println("messageResponseList: " + messageResponseList);
-
         return messageResponseList;
     }
 
@@ -125,7 +120,7 @@ public class GPTServiceImpl implements GPTService{
 
         Chatmessage chatmessage = Chatmessage.builder()
                 .role("user")
-                .content("This is example message. Did you get this prompt?").build();
+                .content(diaryDetail).build();
         chatmessageList.add(chatmessage);
 
         AIThread aiThread = AIThread.builder()
