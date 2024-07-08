@@ -121,11 +121,11 @@ public class GPTServiceImpl implements GPTService{
 
         List<Chatmessage> chatmessageList = new ArrayList<>();
 
-        String prompt = "Generate message, prompt is \"" + diaryDetail + "\".";
+        String prompt = "User Name: User.\nDiary : " + diaryDetail;
 
         Chatmessage chatmessage = Chatmessage.builder()
                 .role("user")
-                .content("This is example message. Did you get this prompt?").build();
+                .content(prompt).build();
         chatmessageList.add(chatmessage);
 
         AIThread aiThread = AIThread.builder()

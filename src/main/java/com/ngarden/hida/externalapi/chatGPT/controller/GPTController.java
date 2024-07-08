@@ -34,12 +34,13 @@ public class GPTController {
 
     @Value("${OPENAI.ASSISTANT-ID}")
     private String assistantId;
+
     private final ChatGPTConfig chatGPTConfig;
 
     @PostMapping()
     public ResponseEntity<CreateThreadAndRunResponse> createThread(
             @RequestBody() String message
-    ){
+    ) {
         CreateThreadAndRunRequest request = gptService.generateThreadAndRun(assistantId, message);
         CreateThreadAndRunResponse response = null;
 
