@@ -40,7 +40,7 @@ public class GPTController {
     @PostMapping()
     public ResponseEntity<CreateThreadAndRunResponse> createThread(
             @RequestBody() String message
-    ){
+    ) {
         CreateThreadAndRunRequest request = gptService.generateThreadAndRun(assistantId, message);
         CreateThreadAndRunResponse response = null;
 

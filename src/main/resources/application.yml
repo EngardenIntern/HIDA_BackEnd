@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/hida?serverTimezone=Asia/Seoul
     username: root
-    password: root
+    password: dongjae625!!
   profiles:
     include: SECRET-KEY
 
@@ -12,6 +12,9 @@ spring:
       ddl-auto: create
     show-sql: true
     properties:
-      hiberenate:
-        fomat_sql: false
+      hibernate:
+        fomat_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+
+
