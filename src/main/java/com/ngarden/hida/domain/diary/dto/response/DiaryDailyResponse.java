@@ -21,4 +21,5 @@ public class DiaryDailyResponse {
     private String summary;
     private String comment;
     private String userName;
+    private LocalDate diaryDate;
 }
