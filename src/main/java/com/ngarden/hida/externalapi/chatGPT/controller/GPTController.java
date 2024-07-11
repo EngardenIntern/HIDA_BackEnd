@@ -9,6 +9,7 @@ import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunReques
 import com.ngarden.hida.externalapi.chatGPT.dto.response.CreateThreadAndRunResponse;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.externalapi.chatGPT.service.GPTService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@Getter
 @RequestMapping("api/v1/ai")
 public class GPTController {
     private final GPTService gptService;

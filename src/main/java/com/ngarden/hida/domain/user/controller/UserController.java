@@ -41,6 +41,7 @@ public class UserController {
 
         for(UserEntity userEntity : userEntityList){
             UserResponse userResponse = UserResponse.builder()
+                    .userId(userEntity.getUserId())
                     .userName(userEntity.getUserName())
                     .userStatus(userEntity.getUserStatus())
                     .build();

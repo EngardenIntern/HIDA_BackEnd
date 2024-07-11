@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class UserCreateRequest {
     private String userName;
     private String email;
-
 }

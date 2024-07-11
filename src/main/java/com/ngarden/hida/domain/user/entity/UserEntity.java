@@ -34,6 +34,8 @@ public class UserEntity extends BasicEntity {
     @Column(name = "user_status")
     private Boolean userStatus = Boolean.FALSE;
 
+    private String refreshToken;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<DiaryEntity> diaryEntityList;
 }

@@ -116,7 +116,8 @@ public class GPTServiceImpl implements GPTService{
 
         List<Chatmessage> chatmessageList = new ArrayList<>();
 
-        String prompt = "User Name: User.\nDiary : " + diaryDetail;
+        String prompt = "{User Name: User.\nDiary : " + diaryDetail + " }";
+
 
         Chatmessage chatmessage = Chatmessage.builder()
                 .role("user")
