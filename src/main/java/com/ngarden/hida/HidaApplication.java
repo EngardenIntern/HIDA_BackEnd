@@ -11,5 +11,4 @@ public class HidaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(HidaApplication.class, args);
 	}
-
 }
