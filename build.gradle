@@ -37,6 +37,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	//Docker
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
 	//Kakao gson
 	implementation 'com.google.code.gson:gson:2.10.1'
