@@ -22,7 +22,6 @@ public class UserController {
     public ResponseEntity<UserCreateResponse> createUser(
             @RequestBody UserCreateRequest userCreateRequest
             ){
-
         UserEntity userEntity = userService.createUser(userCreateRequest);
 
         UserCreateResponse userCreateResponse = UserCreateResponse.builder()
