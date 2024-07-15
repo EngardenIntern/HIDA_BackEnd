@@ -73,16 +73,16 @@ jobs:
     steps:
       # 1. 최신 이미지를 풀받습니다
       - name: docker pull
-        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hida-application
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hida-application
       
       # 2. 기존의 컨테이너를 중지시킵니다
       - name: docker stop container
-        run: sudo docker stop hida 2>/dev/null || true
+        run: docker stop hida 2>/dev/null || true
 
       # 3. 최신 이미지를 컨테이너화하여 실행시킵니다
       - name: docker run new container
-        run: sudo docker run --name knufest --rm -d -p 8080:8080 --net in-net ${{ secrets.DOCKERHUB_USERNAME }}/hida-application sleep infinity
+        run: docker run --name knufest --rm -d -p 8080:8080 --net in-net ${{ secrets.DOCKERHUB_USERNAME }}/hida-application sleep infinity
 
       # 4. 미사용 이미지를 정리합니다
       - name: delete old docker image
-        run: sudo docker system prune -f
+        run: docker system prune -f
