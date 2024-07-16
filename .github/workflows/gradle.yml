@@ -80,19 +80,23 @@ jobs:
       # 1. 최신 이미지를 풀받습니다
       - name: docker pull
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hida-application
-        
+        shell: pwsh
+
       
       # 2. 기존의 컨테이너를 중지시킵니다
       - name: docker-compose down
         run: docker-compose down
-        
+        shell: pwsh
+
 
       # 3. 최신 이미지를 컨테이너화하여 실행시킵니다
       - name: docker-compose up
         run: docker-compose up -d
-        
+        shell: pwsh
+
         
       # 4. 미사용 이미지를 정리합니다
       - name: delete old docker image
         run: docker system prune -f
-        
+        shell: pwsh
+
