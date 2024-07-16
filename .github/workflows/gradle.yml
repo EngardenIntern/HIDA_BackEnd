@@ -55,6 +55,7 @@ jobs:
         KAKAO_REDIRECT_URI: ${{secrets.KAKAO_REDIRECTURI}}
         JWT_SECRET_KEY: ${{secrets.JWT_SECRETKEY}}
       run: |
+        mkdir ./src/main/resources
         echo "OPENAI:" >> $SECRET_DIR/$SECRET_FILENAME
         echo "  API-KEY: $OPENAI_API_KEY" >> $SECRET_DIR/$SECRET_FILENAME
         echo "  ASSISTANT-ID:" >> $SECRET_DIR/$SECRET_FILENAME
