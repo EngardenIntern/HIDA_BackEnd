@@ -55,7 +55,6 @@ jobs:
         KAKAO_REDIRECT_URI: ${{secrets.KAKAO_REDIRECTURI}}
         JWT_SECRET_KEY: ${{secrets.JWT_SECRETKEY}}
       run: |
-        mkdir ./src/main/resources
         echo "OPENAI:" >> $SECRET_DIR/$SECRET_FILENAME
         echo "  API-KEY: $OPENAI_API_KEY" >> $SECRET_DIR/$SECRET_FILENAME
         echo "  ASSISTANT-ID:" >> $SECRET_DIR/$SECRET_FILENAME
@@ -74,6 +73,7 @@ jobs:
         echo "## JWT" >> $SECRET_DIR/$SECRET_FILENAME
         echo "JWT:" >> $SECRET_DIR/$SECRET_FILENAME
         echo "  SECRET-KEY: $JWT_SECRET_KEY" >> $SECRET_DIR/$SECRET_FILENAME
+        cat $SECRET_DIR/$SECRET_FILENAME
 
     # 2. Spring Boot 어플리케이션 빌드
     - name: Setup Gradle
