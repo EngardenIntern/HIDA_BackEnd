@@ -72,9 +72,10 @@ jobs:
 
     steps:
 
-      # 0. PowerShell 실행 정책을 변경합니다
       - name: Set PowerShell Execution Policy
-        run: Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+        run: |
+          powershell -Command "Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force"
+        shell: cmd
        
       # 1. 최신 이미지를 풀받습니다
       - name: docker pull
