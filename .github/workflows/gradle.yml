@@ -43,7 +43,7 @@ jobs:
     - name: Setup secret
       env:
         SECRET_DIR: src/main/resources
-        SECRET_FILENAME: applicaton-SECRET-KEY.yml
+        SECRET_FILENAME: application-SECRET-KEY.yml
         OPENAI_API_KEY: ${{secrets.OPENAI_APIKEY}}
         ASSISTANT_ID_MOM: ${{secrets.OPENAI_ASSISTANTID_MOM}}
         ASSISTANT_ID_JOY: ${{secrets.OPENAI_ASSISTANTID_JOY}}
