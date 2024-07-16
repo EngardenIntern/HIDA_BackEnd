@@ -64,8 +64,8 @@ jobs:
     # 위의 단계까지 CI
     # 아래의 단계부터 CD
 
-    # 위 과정에서 푸시한 이미지를 ec2에서 풀받아서 실행시키는 과정 
-  run-docker-image-on-ec2:
+    # 위 과정에서 푸시한 이미지를 server에서 풀받아서 실행시키는 과정 
+  run-image-on-server:
     # build-docker-image (위)과정이 완료되어야 실행됩니다.
     needs: build-docker-image
     runs-on: self-hosted
@@ -76,13 +76,13 @@ jobs:
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hida-application
       
       # 2. 기존의 컨테이너를 중지시킵니다
-      - name: docker stop container
-        run: docker stop hida 2>/dev/null || true
+      - name: docker-compose down
+        run: docker-compose down
 
       # 3. 최신 이미지를 컨테이너화하여 실행시킵니다
-      - name: docker run new container
-        run: docker run --name knufest --rm -d -p 8080:8080 --net in-net ${{ secrets.DOCKERHUB_USERNAME }}/hida-application sleep infinity
-
+      - name: docker-compose up
+        run: docker-compose up -d
+        
       # 4. 미사용 이미지를 정리합니다
       - name: delete old docker image
         run: docker system prune -f
