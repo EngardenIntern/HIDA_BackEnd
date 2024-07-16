@@ -7,7 +7,7 @@
 
 name: Java CI with Gradle
 
-# 동작 조건 설정: main 브랜치에 push / pull_request가 발생하여 끝났을 때 동작.
+# 동작 조건 설정: main 브랜치에 push 또는 pull_request가 발생하여 끝났을 때 동작.
 on:
   push:
     branches: [ "main" ]
