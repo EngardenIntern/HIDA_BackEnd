@@ -1,9 +1,9 @@
 spring:
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/hida?serverTimezone=Asia/Seoul
-#    username: root
-#    password: root
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/hida?serverTimezone=Asia/Seoul
+    username: root
+    password: root
 
   profiles:
     include: SECRET-KEY
@@ -17,5 +17,7 @@ spring:
         fomat_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
+server:
+  port: 8081
 
 

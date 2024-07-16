@@ -34,7 +34,7 @@ import java.util.Map;
 public class GPTController {
     private final GPTService gptService;
 
-    @Value("${OPENAI.ASSISTANT-ID.COMMENT}")
+    @Value("${OPENAI.ASSISTANT-ID.MOM}")
     private String assistantId;
 
     private final ChatGPTConfig chatGPTConfig;

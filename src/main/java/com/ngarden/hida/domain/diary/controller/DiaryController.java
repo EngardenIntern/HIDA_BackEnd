@@ -31,7 +31,7 @@ public class DiaryController {
     private final DiaryService diaryService;
     private final UserService userService;
 
-    @Value("${OPENAI.ASSISTANT-ID.COMMENT}")
+    @Value("${OPENAI.ASSISTANT-ID.MOM}")
     private String commentAssistantId;
 
     @Value("${OPENAI.ASSISTANT-ID.SUMMARY}")
