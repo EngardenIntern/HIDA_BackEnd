@@ -39,6 +39,41 @@ jobs:
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
 
+    # 1.5 Secret Key 설정
+    - name: Setup secret
+      env:
+        SECRET_DIR: src/main/resources
+        SECRET_FILENAME: applicaton-SECRET-KEY.yml
+        OPENAI_API_KEY: ${{secrets.OPENAI_APIKEY}}
+        ASSISTANT_ID_MOM: ${{secrets.OPENAI_ASSISTANTID_MOM}}
+        ASSISTANT_ID_JOY: ${{secrets.OPENAI_ASSISTANTID_JOY}}
+        ASSISTANT_ID_SADNESS: ${{secrets.OPENAI_ASSISTANTID_SADNESS}}
+        ASSISTANT_ID_ANGER: ${{secrets.OPENAI_ASSISTANTID_ANGER}}
+        ASSISTANT_ID_FEAR: ${{secrets.OPENAI_ASSISTANTID_FEAR}}
+        ASSISTANT_ID_SUMMARY: ${{secrets.OPENAI_ASSISTANTID_SADNESS}}
+        KAKAO_CLIENT_ID: ${{secrets.KAKAO_CLIENTID}}
+        KAKAO_REDIRECT_URI: ${{secrets.KAKAO_REDIRECTURI}}
+        JWT_SECRET_KEY: ${{secrets.JWT_SECRETKEY}}
+      run: |
+        echo "OPENAI:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  API-KEY: $OPENAI_API_KEY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  ASSISTANT-ID:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    MOM: $ASSISTANT_ID_MOM" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    JOY: $ASSISTANT_ID_JOY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    SADNESS: $ASSISTANT_ID_SADNESS" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    ANGER: $ASSISTANT_ID_ANGER" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    FEAR: $ASSISTANT_ID_FEAR" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    SUMMARY: $ASSISTANT_ID_SUMMARY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "">> $SECRET_DIR/$SECRET_FILENAME
+        echo "## KAKAO" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "KAKAO:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  CLIENT-ID: $KAKAO_CLIENT_ID" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  REDIRECT-URI: $KAKAO_REDIRECT_URI" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "">> $SECRET_DIR/$SECRET_FILENAME
+        echo "## JWT" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "JWT:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  SECRET-KEY: $JWT_SECRET_KEY" >> $SECRET_DIR/$SECRET_FILENAME
+
     # 2. Spring Boot 어플리케이션 빌드
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
