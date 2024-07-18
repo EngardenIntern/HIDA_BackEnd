@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface GPTService {
     CreateThreadAndRunResponse createThreadAndRun(CreateThreadAndRunRequest request);
+
     List<MessageResponse> getListMessage(String threadId);
-    CreateThreadAndRunRequest generateThreadAndRun(String assistantId, String diaryDetail);
+
+    CreateThreadAndRunRequest generateThreadAndRun(String prompt, String assistantId);
 }

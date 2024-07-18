@@ -36,8 +36,11 @@ public class DiaryEntity {
     @Column(name = "summary")
     private String summary;
 
-    @Column(name = "comment")
-    private String comment;
+    @Column(name = "mom")
+    private String mom;
+
+    @Column(name = "emotions")
+    private String emotions;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")

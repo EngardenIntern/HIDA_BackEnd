@@ -1,9 +1,11 @@
 package com.ngarden.hida.domain.diary.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
+import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
 import com.ngarden.hida.domain.diary.repository.DiaryRepository;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Semaphore;
+
+import static java.lang.Boolean.*;
 
 @Service
 @Transactional
@@ -45,8 +49,9 @@ public class DiaryServiceImpl implements DiaryService{
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
                 .user(userEntity.get())
-                .comment(diaryCreateRequest.getComment())
+                .mom(diaryCreateRequest.getMom())
                 .summary(diaryCreateRequest.getSummary())
+                .emotions(diaryCreateRequest.getEmotions())
                 .aiStatus(diaryCreateRequest.getAiStatus())
                 .diaryDate(diaryCreateRequest.getDiaryDate())
                 .build();
@@ -71,7 +76,8 @@ public class DiaryServiceImpl implements DiaryService{
                 .detail(diaryEntity.getDetail())
                 .aiStatus(diaryEntity.getAiStatus())
                 .summary(diaryEntity.getSummary())
-                .comment(diaryEntity.getComment())
+                .mom(diaryEntity.getMom())
+                .emotions(diaryEntity.getEmotions())
                 .userName(userEntity.get().getUserName())
                 .diaryDate(diaryEntity.getDiaryDate())
                 .build();
@@ -94,7 +100,8 @@ public class DiaryServiceImpl implements DiaryService{
                     .detail(diaryEntity.getDetail())
                     .aiStatus(diaryEntity.getAiStatus())
                     .summary(diaryEntity.getSummary())
-                    .comment(diaryEntity.getComment())
+                    .mom(diaryEntity.getMom())
+                    .emotions(diaryEntity.getEmotions())
                     .userName(diaryEntity.getUser().getUserName())
                     .diaryDate(diaryEntity.getDiaryDate())
                     .build();
@@ -110,14 +117,24 @@ public class DiaryServiceImpl implements DiaryService{
     }
 
     @Override
-    public MessageResponse createDiaryByGpt(DiaryCreateRequest diaryCreateRequest, String InputAssistantId) {
+    public MessageResponse createDiaryByEmotionGpt(String diaryDetail, JsonNode diarySummary, String inputAssistantId) {
+        String diaryDetailAndSummary = "{\"diary\" : " + diaryDetail +
+                ", \"event\" : " + diarySummary.get("event") +
+                ", \"emotion\" : " + diarySummary.get("subEmotion") + "}";
+
+        return createDiaryByGpt(diaryDetailAndSummary, inputAssistantId);
+    }
+
+    @Override
+    public MessageResponse createDiaryByGpt(String prompt, String inputAssistantId) {
 
         List<MessageResponse> messageResponseList = List.of();
         Semaphore semaphore = semaConfig.semaphore();
         CreateThreadAndRunResponse AIResponse = null;
         try {
             semaphore.acquire();
-            CreateThreadAndRunRequest AIRequest = gptService.generateThreadAndRun(InputAssistantId, diaryCreateRequest.getDetail());
+            CreateThreadAndRunRequest AIRequest = gptService.generateThreadAndRun(prompt, inputAssistantId);
+
             Optional<CreateThreadAndRunResponse> GPTAIResponse = Optional.ofNullable(gptService.createThreadAndRun(AIRequest));
             if (GPTAIResponse.isEmpty()) {
                 throw new NoExistException("GPTAIResponse가 없습니다.");
@@ -130,8 +147,9 @@ public class DiaryServiceImpl implements DiaryService{
         }
         try {
             semaphore.acquire();
-            while(Boolean.TRUE) {
+            while(TRUE) {
                 Thread.sleep(500);
+                assert AIResponse != null;
                 messageResponseList = gptService.getListMessage(AIResponse.getThreadId());
                 if (!(messageResponseList.isEmpty() || messageResponseList.get(0).getMessage() == null)) {
                     break;
@@ -157,6 +175,4 @@ public class DiaryServiceImpl implements DiaryService{
                 .message(message)
                 .build();
     }
-
-
 }
