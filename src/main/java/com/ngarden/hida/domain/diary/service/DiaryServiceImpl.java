@@ -17,6 +17,7 @@ import com.ngarden.hida.global.config.SemaConfig;
 import com.ngarden.hida.global.error.NoExistException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ import static java.lang.Boolean.*;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class DiaryServiceImpl implements DiaryService{
     private final DiaryRepository diaryRepository;
     private final UserRepository userRepository;
@@ -160,6 +162,8 @@ public class DiaryServiceImpl implements DiaryService{
         } finally {
             semaphore.release();
         }
+
+        log.info("GPT message response:" + messageResponseList.get(0).getMessage());
 
         String message = String.valueOf(messageResponseList.get(0).getMessage());
         String messageId = messageResponseList.get(0).getId();

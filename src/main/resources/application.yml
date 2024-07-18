@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/hida?serverTimezone=Asia/Seoul
     username: root
-    password: dongjae625!!
+    password: root
 
   profiles:
     include: SECRET-KEY

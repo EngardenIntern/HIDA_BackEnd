@@ -7,7 +7,7 @@
 
 name: Java CI with Gradle
 
-# 동작 조건 설정: main 브랜치에 push / pull_request가 발생하여 끝났을 때 동작.
+# 동작 조건 설정: main 브랜치에 push 또는 pull_request가 발생하여 끝났을 때 동작.
 on:
   push:
     branches: [ "main" ]
@@ -39,6 +39,44 @@ jobs:
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
 
+    # 1.5 Secret Key 설정
+    - name: Setup secret
+      env:
+        SECRET_DIR: src/main/resources
+        SECRET_FILENAME: application-SECRET-KEY.yml
+        OPENAI_API_KEY: ${{secrets.OPENAI_APIKEY}}
+        ASSISTANT_ID_MOM: ${{secrets.OPENAI_ASSISTANTID_MOM}}
+        ASSISTANT_ID_JOY: ${{secrets.OPENAI_ASSISTANTID_JOY}}
+        ASSISTANT_ID_SADNESS: ${{secrets.OPENAI_ASSISTANTID_SADNESS}}
+        ASSISTANT_ID_ANGER: ${{secrets.OPENAI_ASSISTANTID_ANGER}}
+        ASSISTANT_ID_FEAR: ${{secrets.OPENAI_ASSISTANTID_FEAR}}
+        ASSISTANT_ID_SUMMARY: ${{secrets.OPENAI_ASSISTANTID_SADNESS}}
+        KAKAO_CLIENT_ID: ${{secrets.KAKAO_CLIENTID}}
+        KAKAO_REDIRECT_URI: ${{secrets.KAKAO_REDIRECTURI}}
+        JWT_SECRET_KEY: ${{secrets.JWT_SECRETKEY}}
+      run: |
+        echo "OPENAI:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  API-KEY: $OPENAI_API_KEY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  ASSISTANT-ID:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    MOM: $ASSISTANT_ID_MOM" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    JOY: $ASSISTANT_ID_JOY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    SADNESS: $ASSISTANT_ID_SADNESS" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    ANGER: $ASSISTANT_ID_ANGER" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    FEAR: $ASSISTANT_ID_FEAR" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "    SUMMARY: $ASSISTANT_ID_SUMMARY" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "">> $SECRET_DIR/$SECRET_FILENAME
+        echo "## KAKAO" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "KAKAO:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  CLIENT-ID: $KAKAO_CLIENT_ID" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  REDIRECT-URI: $KAKAO_REDIRECT_URI" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "">> $SECRET_DIR/$SECRET_FILENAME
+        echo "## JWT" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "JWT:" >> $SECRET_DIR/$SECRET_FILENAME
+        echo "  SECRET-KEY: $JWT_SECRET_KEY" >> $SECRET_DIR/$SECRET_FILENAME
+        cat $SECRET_DIR/$SECRET_FILENAME
+        ls $SECRET_DIR
+        pwd 
+
     # 2. Spring Boot 어플리케이션 빌드
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
@@ -64,25 +102,39 @@ jobs:
     # 위의 단계까지 CI
     # 아래의 단계부터 CD
 
-    # 위 과정에서 푸시한 이미지를 ec2에서 풀받아서 실행시키는 과정 
-  run-docker-image-on-ec2:
+    # 위 과정에서 푸시한 이미지를 server에서 풀받아서 실행시키는 과정 
+  run-image-on-server:
     # build-docker-image (위)과정이 완료되어야 실행됩니다.
     needs: build-docker-image
     runs-on: self-hosted
 
     steps:
+
+      - name: Set PowerShell Execution Policy
+        run: |
+          powershell -Command "Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force"
+        shell: cmd
+       
       # 1. 최신 이미지를 풀받습니다
       - name: docker pull
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hida-application
+        shell: cmd
+
       
       # 2. 기존의 컨테이너를 중지시킵니다
-      - name: docker stop container
-        run: docker stop hida 2>/dev/null || true
+      - name: docker-compose down
+        run: docker-compose down
+        shell: cmd
+
 
       # 3. 최신 이미지를 컨테이너화하여 실행시킵니다
-      - name: docker run new container
-        run: docker run --name knufest --rm -d -p 8080:8080 --net in-net ${{ secrets.DOCKERHUB_USERNAME }}/hida-application sleep infinity
+      - name: docker-compose up
+        run: docker-compose up -d
+        shell: cmd
 
+        
       # 4. 미사용 이미지를 정리합니다
       - name: delete old docker image
         run: docker system prune -f
+        shell: cmd
+
