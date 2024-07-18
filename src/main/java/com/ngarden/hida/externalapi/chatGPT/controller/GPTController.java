@@ -43,7 +43,7 @@ public class GPTController {
     public ResponseEntity<CreateThreadAndRunResponse> createThread(
             @RequestBody() String message
     ) {
-        CreateThreadAndRunRequest request = gptService.generateThreadAndRun(assistantId, message);
+        CreateThreadAndRunRequest request = gptService.generateThreadAndRun(message, assistantId);
         CreateThreadAndRunResponse response = null;
 
         HttpHeaders headers = chatGPTConfig.httpHeaders();
@@ -60,8 +60,7 @@ public class GPTController {
                     .assistantId(data.get("assistant_id").toString())
                     .threadId(data.get("thread_id").toString())
                     .build();
-            System.out.println("APIresult : " + APIresult.toString());
-            response = APIresult;
+             response = APIresult;
 
         } catch (JsonMappingException e) {
             log.debug("JsonMappingException :: " + e.getMessage());
@@ -70,8 +69,6 @@ public class GPTController {
         } catch (RuntimeException e) {
             log.debug("RuntimeException :: " + e.getMessage());
         }
-
-        System.out.println(response.toString());
 
         return ResponseEntity.ok(response);
     }
@@ -100,7 +97,6 @@ public class GPTController {
             log.debug("RuntimeException :: " + e.getMessage());
         }
         log.debug("result: " + result.toString());
-        System.out.println("result: " + result);
 
         List<Map<String, Object>> dataList = (List<Map<String, Object>>) result.get("data");
         log.debug("dataList" + dataList.toString());

@@ -112,12 +112,9 @@ public class GPTServiceImpl implements GPTService{
     }
 
     @Override
-    public CreateThreadAndRunRequest generateThreadAndRun(String assistantId, String diaryDetail) {
+    public CreateThreadAndRunRequest generateThreadAndRun(String prompt, String assistantId) {
 
         List<Chatmessage> chatmessageList = new ArrayList<>();
-
-        String prompt = "{User Name: User.\nDiary : " + diaryDetail + " }";
-
 
         Chatmessage chatmessage = Chatmessage.builder()
                 .role("user")
@@ -126,11 +123,10 @@ public class GPTServiceImpl implements GPTService{
 
         AIThread aiThread = AIThread.builder()
                 .messages(chatmessageList).build();
-        CreateThreadAndRunRequest request = CreateThreadAndRunRequest.builder()
+
+        return CreateThreadAndRunRequest.builder()
                 .assistantId(assistantId)
                 .aiThread(aiThread)
                 .build();
-
-        return request;
     }
 }

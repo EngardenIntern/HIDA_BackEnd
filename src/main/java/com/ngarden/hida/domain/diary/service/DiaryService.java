@@ -1,5 +1,6 @@
 package com.ngarden.hida.domain.diary.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
@@ -12,6 +13,6 @@ public interface DiaryService {
     DiaryEntity saveDiary(DiaryCreateRequest diaryCreateRequest);
     DiaryDailyResponse getDiaryDaily(Long userId, LocalDate date);
     DiaryListResponse getDiaryList(Long userId);
-
-    MessageResponse createDiaryByGpt(DiaryCreateRequest request, String assistantId);
+    MessageResponse createDiaryByEmotionGpt(String diaryDetail, JsonNode diarySummary, String inputAssistantId);
+    MessageResponse createDiaryByGpt(String prompt, String inputAssistantId);
 }

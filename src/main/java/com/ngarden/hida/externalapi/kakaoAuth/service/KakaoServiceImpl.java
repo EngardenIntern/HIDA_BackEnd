@@ -131,7 +131,6 @@ public class KakaoServiceImpl implements KakaoService{
         String refresh_Token = "";
         String reqURL = "https://kauth.kakao.com/oauth/token";
 
-        System.out.println("getKakaoAccessToken");
 
         try {
             URL url = new URL(reqURL);
@@ -147,14 +146,12 @@ public class KakaoServiceImpl implements KakaoService{
             sb.append("&code=" + authorize_code);
             bw.write(sb.toString());
             bw.flush();
-            System.out.println("After flush");
 
             int responseCode = conn.getResponseCode();
             log.info("responseCode : " + responseCode);
 
-            System.out.println("before br");
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            System.out.println("after br");
+
 
             String line = "";
             String result = "";

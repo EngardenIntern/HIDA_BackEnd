@@ -13,8 +13,9 @@ public class DiaryCreateRequest {
     private Long userId;
     private String title;
     private String detail;
-    private String comment;
+    private String mom;
     private String summary;
+    private String emotions;
     private Boolean aiStatus;
     private LocalDate DiaryDate;
 }

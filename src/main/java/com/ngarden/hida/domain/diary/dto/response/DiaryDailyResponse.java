@@ -19,7 +19,8 @@ public class DiaryDailyResponse {
     private String detail;
     private Boolean aiStatus;
     private String summary;
-    private String comment;
+    private String mom;
+    private String emotions;
     private String userName;
     private LocalDate diaryDate;
 }
