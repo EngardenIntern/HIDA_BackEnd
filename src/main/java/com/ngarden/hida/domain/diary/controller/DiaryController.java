@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -49,7 +48,8 @@ public class DiaryController {
         MessageResponse summaryResponse = diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), summaryAssistantId);
         MessageResponse emotionResponse = null;
         String emotionsComment = null;
-
+        summaryResponse.setMessage(JsonParsing(summaryResponse.getMessage()));
+        momResponse.setMessage(JsonParsing(momResponse.getMessage()));
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -137,6 +137,19 @@ public class DiaryController {
         DiaryListResponse diaryListResponse = diaryService.getDiaryList(userId);
 
         return ResponseEntity.ok().body(diaryListResponse);
+    }
+
+    private String JsonParsing(String message){
+
+        int firstIndex =message.indexOf('{');
+        int lastIndex = message.lastIndexOf('}');
+
+        if (firstIndex != -1 && lastIndex != -1 && firstIndex < lastIndex) {
+            // '{' 문자부터 '}' 문자까지의 부분 문자열을 얻습니다.
+            return message.substring(firstIndex, lastIndex + 1);
+        } else {
+            throw new NoExistException("Json 형식이 아닙니다.");
+        }
     }
 
 }
