@@ -106,6 +106,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
+
+      - name: Set PowerShell Execution Policy
+        run: |
+          powershell -Command "Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force"
+        shell: cmd
        
       # 1. 최신 이미지를 풀받습니다
       - name: docker pull
