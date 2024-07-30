@@ -34,6 +34,14 @@ public class UserEntity extends BasicEntity {
     @Column(name = "user_status")
     private Boolean userStatus = Boolean.FALSE;
 
+    /**
+     *  directoryName : 1_최정식
+     *                  2_이동재
+     *  defaultFilePath\\directoryName
+     */
+    @Column(name = "directory_name")
+    private String directoryName;
+
     private String refreshToken;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)

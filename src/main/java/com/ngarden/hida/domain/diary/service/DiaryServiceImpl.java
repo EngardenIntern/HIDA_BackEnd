@@ -5,8 +5,8 @@ import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
-import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
 import com.ngarden.hida.domain.diary.repository.DiaryRepository;
+import com.ngarden.hida.domain.file.FileService;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
 import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunRequest;
@@ -18,8 +18,11 @@ import com.ngarden.hida.global.error.NoExistException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +40,7 @@ public class DiaryServiceImpl implements DiaryService{
     private final UserRepository userRepository;
     private final SemaConfig semaConfig;
     private final GPTService gptService;
-
+    private final FileService fileService;
 
 
     @Override
@@ -47,6 +50,28 @@ public class DiaryServiceImpl implements DiaryService{
         if(userEntity.isEmpty()){
             throw new NoExistException("유저 정보가 없습니다.");
         }
+
+        //diaryFilePath : 1_최정식\\diary
+        String diaryFilePath = userEntity.get().getDirectoryName() + "\\diary";
+        //diaryFileName : 2012-02-12_최정식.json
+        String diaryFileName = diaryCreateRequest.getDiaryDate() + "_" + userEntity.get().getUserName() + ".json";
+        String diaryFileContent = createFileJsonContentByRequest(diaryCreateRequest);
+
+        //파일 생성, 본문 쓰기
+        File diaryFile = fileService.createOrOpenFileInPath(diaryFilePath, diaryFileName);
+        File summaryFile = fileService.createOrOpenFileInPath(userEntity.get().getDirectoryName(), "summary_" + userEntity.get().getUserName());
+        fileService.writeStringInFile(diaryFile, diaryFileContent, FALSE);
+        fileService.writeStringInFile(summaryFile, diaryCreateRequest.getSummary(), TRUE);
+        /**
+         *  Title / Detail / [Summary] / MoM / Emotions
+         *
+         * 1. 파일 열기 (적절한 파일 위치)
+         *
+         * 2. 파일에 글 옮기기 - 정확히는 fwrite()
+         * 3. 파일 경로를 diaryEntity에 저장
+         * 4. diaryEntity Save
+         */
+
         DiaryEntity diaryEntity = DiaryEntity.builder()
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
@@ -56,8 +81,8 @@ public class DiaryServiceImpl implements DiaryService{
                 .emotions(diaryCreateRequest.getEmotions())
                 .aiStatus(diaryCreateRequest.getAiStatus())
                 .diaryDate(diaryCreateRequest.getDiaryDate())
+                .diaryPath(diaryFile.getPath())
                 .build();
-
 
         return diaryRepository.save(diaryEntity);
     }
@@ -72,7 +97,7 @@ public class DiaryServiceImpl implements DiaryService{
 
         DiaryEntity diaryEntity = diaryRepository.findByUserAndDiaryDate(userEntity.get(), date);
 
-        DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
+        return DiaryDailyResponse.builder()
                 .date(diaryEntity.getDiaryDate())
                 .title(diaryEntity.getTitle())
                 .detail(diaryEntity.getDetail())
@@ -83,8 +108,6 @@ public class DiaryServiceImpl implements DiaryService{
                 .userName(userEntity.get().getUserName())
                 .diaryDate(diaryEntity.getDiaryDate())
                 .build();
-
-        return diaryDailyResponse;
     }
 
     @Override
@@ -110,12 +133,11 @@ public class DiaryServiceImpl implements DiaryService{
 
             diaryDailyResponseList.add(diaryDailyResponse);
         }
-        DiaryListResponse diaryListResponse = DiaryListResponse.builder()
+
+        return DiaryListResponse.builder()
                 .diaryDailyResponseList(diaryDailyResponseList)
                 .userName(userEntity.get().getUserName())
                 .build();
-
-        return diaryListResponse;
     }
 
     @Override
@@ -178,5 +200,36 @@ public class DiaryServiceImpl implements DiaryService{
                 .role(role)
                 .message(message)
                 .build();
+    }
+
+    /**
+     *{
+     * 	"date" : "2012-02-12",
+     * 	"title" : "~~~",
+     * 	"detail" : "~~~",
+     * 	"mom" : "~~~~",
+     * 	"emotions" : [{
+     * 		"emotion" : "~~~",
+     * 		"comment" : "~~~",
+     * 	    },
+     *    {
+     * 		"emotion" : "~~~",
+     * 		"comment" : "~~~",
+     *    }]
+     * }
+     * @param diaryCreateRequest
+     * @return diaryCreateRequest에 있는 내용으로 파일에 넣을 Json형식을 생성해서 반환
+     */
+    @Override
+    public String createFileJsonContentByRequest(DiaryCreateRequest diaryCreateRequest) {
+        JSONObject object = new JSONObject();
+        object.put("date", diaryCreateRequest.getDiaryDate());
+        object.put("title", diaryCreateRequest.getTitle());
+        object.put("detail", diaryCreateRequest.getDetail());
+        object.put("mom", diaryCreateRequest.getMom());
+        JSONArray emotions = new JSONArray(diaryCreateRequest.getEmotions());
+        object.put("emotions", emotions);
+
+        return object.toString();
     }
 }

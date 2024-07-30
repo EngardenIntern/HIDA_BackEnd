@@ -14,5 +14,8 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        fomat_sql: true
+        format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8081

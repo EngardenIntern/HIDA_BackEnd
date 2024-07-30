@@ -42,6 +42,9 @@ public class DiaryEntity {
     @Column(name = "emotions")
     private String emotions;
 
+    @Column(name = "diary_path")
+    private  String diaryPath;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private UserEntity user;

@@ -15,4 +15,5 @@ public interface DiaryService {
     DiaryListResponse getDiaryList(Long userId);
     MessageResponse createDiaryByEmotionGpt(String diaryDetail, JsonNode diarySummary, String inputAssistantId);
     MessageResponse createDiaryByGpt(String prompt, String inputAssistantId);
+    String createFileJsonContentByRequest(DiaryCreateRequest diaryCreateRequest);
 }

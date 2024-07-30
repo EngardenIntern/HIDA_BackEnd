@@ -1,7 +1,5 @@
 package com.ngarden.hida.domain.diary.dto.response;
 
-import com.ngarden.hida.domain.diary.entity.DiaryEntity;
-import com.ngarden.hida.domain.user.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
