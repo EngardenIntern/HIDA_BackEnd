@@ -15,12 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 public class DiaryDailyResponse {
     private LocalDate date;
+    private Boolean aiStatus;
+    private String userName;
     private String title;
     private String detail;
-    private Boolean aiStatus;
-    private String summary;
-    private String mom;
     private String emotions;
-    private String userName;
-    private LocalDate diaryDate;
+    private String mom;
 }

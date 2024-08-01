@@ -25,4 +25,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 
+    @ExceptionHandler(value = AlreadyExistException.class)
+    public ResponseEntity<ErrorMessage> handleException(AlreadyExistException e){
+        ErrorMessage message = ErrorMessage.builder()
+                .status(HttpStatus.NOT_ACCEPTABLE.value())
+                .message(e.getMessage())
+                .timeStamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
 }

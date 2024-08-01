@@ -100,11 +100,10 @@ public class KakaoServiceImpl implements KakaoService{
 
         String accessToken = jwtTokenProvider.createAccessToken(outhId);
         String refreshToken = jwtTokenProvider.createRefreshToken(outhId);
-
         UserEntity user = UserEntity.builder()
-                .outhId(outhId)
                 .userName(nickname)
                 .email(email)
+                .outhId(outhId)
                 .refreshToken(refreshToken)
                 .build();
 

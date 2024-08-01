@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> userEntity = userRepository.findById(userId);
 
         if(userEntity.isEmpty()){
-            throw new NoExistException();
+            throw new NoExistException("유저가 없습니다");
         }
 
         return userEntity.get();
