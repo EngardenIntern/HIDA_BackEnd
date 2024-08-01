@@ -46,17 +46,23 @@ public class DiaryController {
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
     ){
+        //유저 있는지 확인
+        Optional<UserEntity> userEntity = Optional.ofNullable(userService.findById(diaryCreateRequest.getUserId()));
+        //TODO:파일 있는지 없는지 여기서 확인 하면 좋을듯
+
         MessageResponse momResponse =  diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), momAssistantId);
         MessageResponse summaryResponse = diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), summaryAssistantId);
         MessageResponse emotionResponse = null;
         String emotionsComment = null;
+
+        JSONObject momObject = new JSONObject(JsonParsing(momResponse.getMessage()));
+
         summaryResponse.setMessage(JsonParsing(summaryResponse.getMessage()));
-        momResponse.setMessage(JsonParsing(momResponse.getMessage()));
+        momResponse.setMessage(momObject.get("comment").toString());
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(summaryResponse.getMessage());
-            //TODO: summary가 채팅때 쓸 요약본임. 추후에 db에 넣어야함
             JsonNode summaryNode = rootNode.get("summary");
             JsonNode majorEventNode = rootNode.get("majorEvent");
 //            StringBuilder summaryStringBuilder = new StringBuilder();
@@ -91,6 +97,11 @@ public class DiaryController {
                 }
                 emotionsComment = jsonArrayEmotions.toString();
             }
+            else{
+                emotionsComment = "[{ " +
+                        "\"emotion\": \"Empty\"," +
+                        "\"comment\":\"Empty\"}]";
+            }
             JSONObject jsonObjectSummary = new JSONObject();
             jsonObjectSummary.put("date", diaryCreateRequest.getDiaryDate());
             jsonObjectSummary.put("summary", summaryNode);
@@ -101,66 +112,20 @@ public class DiaryController {
 
         diaryCreateRequest.setAiStatus(Boolean.TRUE);
         diaryCreateRequest.setMom(momResponse.getMessage());
-        diaryCreateRequest.setSummary(summaryResponse.getMessage());
+        //Summary는 월단위로 한번에 저장되어서 ","로 구분함
+        diaryCreateRequest.setSummary(summaryResponse.getMessage() + ",");
         diaryCreateRequest.setEmotions(emotionsComment);
-
-        /**
-         * DATE / SUMMARY => summaryResponse
-         * 파일이름: 최정식_summary.txt
-         * {
-         *      "date" : "2012-02-12",
-         *      "summary" :
-         *      [
-         *          {
-         *              "event" : "~~~",
-         *              "mainEmotion" : "~~~",
-         *              "subEmotion" : "~~~"
-         *          },
-         *          {
-         *              "event" : "~~~",
-         *              "mainEmotion" : "~~~",
-         *              "subEmotion" : "~~~"
-         *          }
-         *      ]
-         * },
-         *
-         * DATE / TITLE / DETAIL / MOM / EMOTIONS
-         * => diaryCreateRequest(LocalDate date, String title, String detail)
-         * => momResponse(String message) / emotionsComment(String "emotion"-"comment")
-         * 파일이름: 최정식_20120212.txt
-         * {
-         *      "date" : "2012-02-12",
-         *      "title" : "~~~",
-         *      "detail" : "~~~",
-         *      "mom" : "~~~~",
-         *      "emotions" : [{
-         *          "emotion" : "~~~",
-         *          "comment" : "~~~",
-         *      },
-         *      {
-         *          "emotion" : "~~~",
-         *          "comment" : "~~~",
-         *       }]
-         * }
-         *
-         */
 
         diaryService.saveDiary(diaryCreateRequest);
 
-        Optional<UserEntity> userEntity = Optional.ofNullable(userService.findById(diaryCreateRequest.getUserId()));
-        if(userEntity.isEmpty()){
-            throw new NoExistException("유저가 없습니다.");
-        }
         DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
                 .date(diaryCreateRequest.getDiaryDate())
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
-                .aiStatus(diaryCreateRequest.getAiStatus())
-                .summary(diaryCreateRequest.getSummary())
-                .mom(diaryCreateRequest.getMom())
                 .emotions(diaryCreateRequest.getEmotions())
+                .mom(diaryCreateRequest.getMom())
+                .aiStatus(diaryCreateRequest.getAiStatus())
                 .userName(userEntity.get().getUserName())
-                .diaryDate(diaryCreateRequest.getDiaryDate())
                 .build();
 
         return ResponseEntity.ok().body(diaryDailyResponse);
@@ -185,9 +150,14 @@ public class DiaryController {
         return ResponseEntity.ok().body(diaryListResponse);
     }
 
+    /**
+     * String의 앞과 끝을 {~~}로 마감해서 반환해줌
+     * @param message 파싱할 String
+     * @return 파싱된 String
+     */
     private String JsonParsing(String message){
 
-        int firstIndex =message.indexOf('{');
+        int firstIndex = message.indexOf('{');
         int lastIndex = message.lastIndexOf('}');
 
         if (firstIndex != -1 && lastIndex != -1 && firstIndex < lastIndex) {

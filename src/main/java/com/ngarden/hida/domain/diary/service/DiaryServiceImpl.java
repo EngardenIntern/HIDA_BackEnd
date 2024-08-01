@@ -14,6 +14,7 @@ import com.ngarden.hida.externalapi.chatGPT.dto.response.CreateThreadAndRunRespo
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.externalapi.chatGPT.service.GPTService;
 import com.ngarden.hida.global.config.SemaConfig;
+import com.ngarden.hida.global.error.AlreadyExistException;
 import com.ngarden.hida.global.error.NoExistException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -51,15 +52,22 @@ public class DiaryServiceImpl implements DiaryService{
             throw new NoExistException("유저 정보가 없습니다.");
         }
 
-        //diaryFilePath : 1_최정식\\diary
-        String diaryFilePath = userEntity.get().getDirectoryName() + "\\diary";
-        //diaryFileName : 2012-02-12_최정식.json
-        String diaryFileName = diaryCreateRequest.getDiaryDate() + "_" + userEntity.get().getUserName() + ".json";
-        String diaryFileContent = createFileJsonContentByRequest(diaryCreateRequest);
+        //diaryFilePath: "1\\diary", summaryFilePath: "1\\summary"
+        String diaryFilePath = userEntity.get().getUserId().toString() + "\\diary";
+        String summaryFilePath = userEntity.get().getUserId().toString() + "\\summary";
+        //diaryFileName: "2012-02-12.json", summaryFileName: "2012-02.json"
+        String diaryFileName = diaryCreateRequest.getDiaryDate().toString() + ".json";
+        String summaryFileName = diaryCreateRequest.getDiaryDate().getYear() + "-" + diaryCreateRequest.getDiaryDate().getMonthValue() + ".json";
+        String diaryFileContent = createJsonByDiaryRequest(diaryCreateRequest);
 
         //파일 생성, 본문 쓰기
         File diaryFile = fileService.createOrOpenFileInPath(diaryFilePath, diaryFileName);
-        File summaryFile = fileService.createOrOpenFileInPath(userEntity.get().getDirectoryName(), "summary_" + userEntity.get().getUserName());
+        File summaryFile = fileService.createOrOpenFileInPath(summaryFilePath, summaryFileName);
+
+        if (diaryFile.length() != 0) {
+            throw new AlreadyExistException("해당 날짜의 다이어리가 이미 존재합니다 :" + diaryFileName);
+        }
+
         fileService.writeStringInFile(diaryFile, diaryFileContent, FALSE);
         fileService.writeStringInFile(summaryFile, diaryCreateRequest.getSummary(), TRUE);
         /**
@@ -73,15 +81,10 @@ public class DiaryServiceImpl implements DiaryService{
          */
 
         DiaryEntity diaryEntity = DiaryEntity.builder()
-                .title(diaryCreateRequest.getTitle())
-                .detail(diaryCreateRequest.getDetail())
                 .user(userEntity.get())
-                .mom(diaryCreateRequest.getMom())
-                .summary(diaryCreateRequest.getSummary())
-                .emotions(diaryCreateRequest.getEmotions())
                 .aiStatus(diaryCreateRequest.getAiStatus())
                 .diaryDate(diaryCreateRequest.getDiaryDate())
-                .diaryPath(diaryFile.getPath())
+                .title(diaryCreateRequest.getTitle())
                 .build();
 
         return diaryRepository.save(diaryEntity);
@@ -95,18 +98,21 @@ public class DiaryServiceImpl implements DiaryService{
             throw new NoExistException("유저 정보가 없습니다.");
         }
 
-        DiaryEntity diaryEntity = diaryRepository.findByUserAndDiaryDate(userEntity.get(), date);
+        String path = userId.toString() + "\\diary";
+        String fileName = date.toString() + ".json";
+        File file = fileService.createOrOpenFileInPath(path, fileName);
+        String content = fileService.readStringInFile(file);
+        JSONObject jsonObject = new JSONObject(content);
 
+        DiaryEntity diaryEntity = diaryRepository.findByUserAndDiaryDate(userEntity.get(), date);
         return DiaryDailyResponse.builder()
                 .date(diaryEntity.getDiaryDate())
                 .title(diaryEntity.getTitle())
-                .detail(diaryEntity.getDetail())
                 .aiStatus(diaryEntity.getAiStatus())
-                .summary(diaryEntity.getSummary())
-                .mom(diaryEntity.getMom())
-                .emotions(diaryEntity.getEmotions())
                 .userName(userEntity.get().getUserName())
-                .diaryDate(diaryEntity.getDiaryDate())
+                .detail(jsonObject.get("detail").toString())
+                .emotions(jsonObject.get("emotions").toString())
+                .mom(jsonObject.get("mom").toString())
                 .build();
     }
 
@@ -122,13 +128,8 @@ public class DiaryServiceImpl implements DiaryService{
             DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
                     .date(diaryEntity.getDiaryDate())
                     .title(diaryEntity.getTitle())
-                    .detail(diaryEntity.getDetail())
                     .aiStatus(diaryEntity.getAiStatus())
-                    .summary(diaryEntity.getSummary())
-                    .mom(diaryEntity.getMom())
-                    .emotions(diaryEntity.getEmotions())
                     .userName(diaryEntity.getUser().getUserName())
-                    .diaryDate(diaryEntity.getDiaryDate())
                     .build();
 
             diaryDailyResponseList.add(diaryDailyResponse);
@@ -140,6 +141,9 @@ public class DiaryServiceImpl implements DiaryService{
                 .build();
     }
 
+    /**
+     * gpt한테 보낼 데이터 가공
+     */
     @Override
     public MessageResponse createDiaryByEmotionGpt(String diaryDetail, JsonNode diarySummary, String inputAssistantId) {
         String diaryDetailAndSummary = "{\"diary\" : " + diaryDetail +
@@ -221,7 +225,7 @@ public class DiaryServiceImpl implements DiaryService{
      * @return diaryCreateRequest에 있는 내용으로 파일에 넣을 Json형식을 생성해서 반환
      */
     @Override
-    public String createFileJsonContentByRequest(DiaryCreateRequest diaryCreateRequest) {
+    public String createJsonByDiaryRequest(DiaryCreateRequest diaryCreateRequest) {
         JSONObject object = new JSONObject();
         object.put("date", diaryCreateRequest.getDiaryDate());
         object.put("title", diaryCreateRequest.getTitle());

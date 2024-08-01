@@ -27,23 +27,8 @@ public class DiaryEntity {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "detail")
-    private String detail;
-
     @Column(name = "AI_status")
     private Boolean aiStatus = Boolean.FALSE;
-
-    @Column(name = "summary")
-    private String summary;
-
-    @Column(name = "mom")
-    private String mom;
-
-    @Column(name = "emotions")
-    private String emotions;
-
-    @Column(name = "diary_path")
-    private  String diaryPath;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")

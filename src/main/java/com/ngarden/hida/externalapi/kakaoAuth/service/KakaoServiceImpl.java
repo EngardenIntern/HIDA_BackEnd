@@ -106,7 +106,6 @@ public class KakaoServiceImpl implements KakaoService{
                 .outhId(outhId)
                 .refreshToken(refreshToken)
                 .build();
-        user.setDirectoryName(user.getUserId().toString() + "_" + nickname);
 
         userRepository.save(user);
 

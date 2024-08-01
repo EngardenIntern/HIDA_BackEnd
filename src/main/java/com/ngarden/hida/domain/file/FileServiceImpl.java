@@ -1,5 +1,6 @@
 package com.ngarden.hida.domain.file;
 
+import com.ngarden.hida.global.error.NoExistException;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -8,11 +9,6 @@ import java.io.*;
 public class FileServiceImpl implements FileService{
     private final String defaultFilePath = "C:\\Users\\SAMSUNG\\Desktop\\새 폴더\\User";
 
-    /**
-     * @param userFilePath 기본파일경로 이후의 경로 String : "최정식userid" or "최정식userid\\최정식Diary"
-     * @param fileName 파일이름 String : "최정식_2020112090.txt"
-     * @return File 객체 반환
-     */
     @Override
     public File createOrOpenFileInPath(String userFilePath, String fileName) {
         File directory = new File(defaultFilePath + "\\" + userFilePath);
@@ -43,19 +39,41 @@ public class FileServiceImpl implements FileService{
         }
     }
 
-    /**
-     * @param file File 객체
-     * @param content 파일 쓸 내용
-     * @param append true: 기존 파일에 이어서 쓰겠다. false: 기존 파일을 덮어쓰겠다.
-     */
     @Override
     public void writeStringInFile(File file, String content, Boolean append) {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file, append));
+        try (FileWriter writer = new FileWriter(file, append)) {
             writer.write(content);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Override
+    public String readStringInFile(File file){
+        try {
+            checkFileNotEmpty(file); //파일이 비어있는지 확인
+        } catch (NoExistException e) {
+            throw new RuntimeException(e);
+        }
+
+        StringBuilder content = new StringBuilder();
+
+        try (FileReader fileReader = new FileReader(file);
+             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                content.append(line);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return content.toString();
+    }
+
+    @Override
+    public void checkFileNotEmpty(File file){
+        if (file.length() == 0) {
+            throw new NoExistException("File is empty: " + file.toString());
+        }
+    }
 }
