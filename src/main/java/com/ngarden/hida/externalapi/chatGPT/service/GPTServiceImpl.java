@@ -10,6 +10,7 @@ import com.ngarden.hida.externalapi.chatGPT.dto.Chatmessage;
 import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunRequest;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.CreateThreadAndRunResponse;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -33,6 +34,7 @@ public class GPTServiceImpl implements GPTService{
     private final ChatGPTConfig chatGPTConfig;
 
     @Override
+    @Operation(summary = " ", description = "테스트용 유저를 생성해준다. 서비스에서는 카카오 소셜로그인을 사용한다.")
     public CreateThreadAndRunResponse createThreadAndRun(CreateThreadAndRunRequest request) {
 
         CreateThreadAndRunResponse response = null;

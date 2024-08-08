@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +54,8 @@ public class DiaryServiceImpl implements DiaryService{
         }
 
         //diaryFilePath: "1\\diary", summaryFilePath: "1\\summary"
-        String diaryFilePath = userEntity.get().getUserId().toString() + "\\diary";
-        String summaryFilePath = userEntity.get().getUserId().toString() + "\\summary";
+        String diaryFilePath = userEntity.get().getUserId().toString() + File.separator + "diary";
+        String summaryFilePath = userEntity.get().getUserId().toString() + File.separator +"summary";
         //diaryFileName: "2012-02-12.json", summaryFileName: "2012-02.json"
         String diaryFileName = diaryCreateRequest.getDiaryDate().toString() + ".json";
         String summaryFileName = diaryCreateRequest.getDiaryDate().getYear() + "-" + diaryCreateRequest.getDiaryDate().getMonthValue() + ".json";
@@ -98,7 +99,7 @@ public class DiaryServiceImpl implements DiaryService{
             throw new NoExistException("유저 정보가 없습니다.");
         }
 
-        String path = userId.toString() + "\\diary";
+        String path = userId.toString() + File.separator + "diary";
         String fileName = date.toString() + ".json";
         File file = fileService.createOrOpenFileInPath(path, fileName);
         String content = fileService.readStringInFile(file);

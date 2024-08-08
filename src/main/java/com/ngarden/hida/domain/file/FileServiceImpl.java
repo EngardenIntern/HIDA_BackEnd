@@ -1,37 +1,40 @@
 package com.ngarden.hida.domain.file;
 
 import com.ngarden.hida.global.error.NoExistException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 
+@Slf4j
 @Service
 public class FileServiceImpl implements FileService{
-    private final String defaultFilePath = "C:\\Users\\SAMSUNG\\Desktop\\새 폴더\\User";
+    private final String defaultFilePath = "/DiaryStorage";
 
     @Override
     public File createOrOpenFileInPath(String userFilePath, String fileName) {
-        File directory = new File(defaultFilePath + "\\" + userFilePath);
+        File directory = new File(defaultFilePath + File.separator + userFilePath);
 
         //디랙토리 있으면 생성
         if (!directory.exists()) {
             try {
-                System.out.println(userFilePath + "폴더 생성 여부 : " + directory.mkdirs());
+
+                log.info("폴더 생성 여부 : " + directory.mkdirs() + ", 폴더 경로 : " + userFilePath);
             } catch (Exception e) {
-                System.out.println(userFilePath + "폴더를 생성하지 못했습니다.");
+                log.info("폴더를 생성하지 못했습니다." + " 폴더 경로 : " + userFilePath);
                 e.getStackTrace();
             }
         }
 
-        String filePath = defaultFilePath + "\\" + userFilePath + "\\" + fileName;
+        String filePath = defaultFilePath + File.separator + userFilePath + File.separator + fileName;
 
         //파일 없으면 생성 있으면 오픈
         try{
             File file = new File(filePath);
             if (!file.exists()) {
-                System.out.println(fileName + "파일 생성 여부 : " + file.createNewFile());
+                log.info("파일 생성 여부 : " + file.createNewFile() + ", 파일 이름 : " + fileName);
             } else {
-                System.out.println(fileName + "파일 오픈");
+                log.info("파일 오픈, 파일 이름 : " + fileName);
             }
             return file;
         } catch (IOException e) {

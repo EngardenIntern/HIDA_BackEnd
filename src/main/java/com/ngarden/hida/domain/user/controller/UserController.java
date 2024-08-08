@@ -5,6 +5,7 @@ import com.ngarden.hida.domain.user.dto.response.UserCreateResponse;
 import com.ngarden.hida.domain.user.dto.response.UserResponse;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping()
+    @Operation(summary = "[테스트용]유저 생성", description = "테스트용 유저를 생성해준다. 서비스에서는 카카오 소셜로그인을 사용한다.")
     public ResponseEntity<UserCreateResponse> createUser(
             @RequestBody UserCreateRequest userCreateRequest
             ){
@@ -33,6 +35,7 @@ public class UserController {
     }
 
     @GetMapping()
+    @Operation(summary = "전체 유저 리스트 반환", description = "전체 유저 리스트(유저 ID, 유저 이름, 유저 Email)를 반환해준다.")
     public ResponseEntity<List<UserResponse>> selectAllUser()
     {
         List<UserEntity> userEntityList = userService.selectAllUser();

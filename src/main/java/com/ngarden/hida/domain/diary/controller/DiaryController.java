@@ -12,13 +12,13 @@ import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.global.error.NoExistException;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -43,6 +43,7 @@ public class DiaryController {
     private String sadnessAssistantId;
 
     @PostMapping
+    @Operation(summary = "일기 저장", description = "일기를 저장하고, 일기 본문과 EMOTIONS, MOM을 보내준다.")
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
     ){
@@ -132,6 +133,7 @@ public class DiaryController {
     }
 
     @GetMapping("/{userId}/{date}")
+    @Operation(summary = "특정 날짜 일기 조회", description = "해당 날짜의 일기 본문, EMOTION, MOM 내용을 반환한다. 일기 목록의 일기를 클릭했을 때 사용한다.")
     public ResponseEntity<DiaryDailyResponse> getDiaryDaily(
             @PathVariable("userId") Long userId,
             @PathVariable("date") LocalDate date
@@ -142,6 +144,7 @@ public class DiaryController {
     }
 
     @GetMapping("/{userId}")
+    @Operation(summary = "전체 일기 리스트 조회", description = "일기 리스트(날짜, 제목) 반환한다. 일기 목록을 볼 때 사용한다.")
     public ResponseEntity<DiaryListResponse> getDiaryList(
             @PathVariable("userId") Long userId
     ){
