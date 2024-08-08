@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
+import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
@@ -111,21 +112,26 @@ public class DiaryController {
             throw new RuntimeException(e);
         }
 
-        diaryCreateRequest.setAiStatus(Boolean.TRUE);
-        diaryCreateRequest.setMom(momResponse.getMessage());
-        //Summary는 월단위로 한번에 저장되어서 ","로 구분함
-        diaryCreateRequest.setSummary(summaryResponse.getMessage() + ",");
-        diaryCreateRequest.setEmotions(emotionsComment);
-
-        diaryService.saveDiary(diaryCreateRequest);
-
-        DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
-                .date(diaryCreateRequest.getDiaryDate())
+        DiarySaveDTO diarySaveDTO = DiarySaveDTO.builder()
+                .userId(diaryCreateRequest.getUserId())
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
-                .emotions(diaryCreateRequest.getEmotions())
-                .mom(diaryCreateRequest.getMom())
-                .aiStatus(diaryCreateRequest.getAiStatus())
+                .mom(momResponse.getMessage())
+                .summary(summaryResponse.getMessage() + ",")
+                .emotions(emotionsComment)
+                .aiStatus(Boolean.TRUE)
+                .DiaryDate(diaryCreateRequest.getDiaryDate())
+                .build();
+
+        diaryService.saveDiary(diarySaveDTO);
+
+        DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
+                .date(diarySaveDTO.getDiaryDate())
+                .title(diarySaveDTO.getTitle())
+                .detail(diarySaveDTO.getDetail())
+                .emotions(diarySaveDTO.getEmotions())
+                .mom(diarySaveDTO.getMom())
+                .aiStatus(diarySaveDTO.getAiStatus())
                 .userName(userEntity.get().getUserName())
                 .build();
 

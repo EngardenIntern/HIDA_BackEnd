@@ -8,9 +8,13 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DiaryCreateRequest {
-    private LocalDate DiaryDate;
+public class DiarySaveDTO {
     private Long userId;
     private String title;
     private String detail;
+    private String mom;
+    private String summary;
+    private String emotions;
+    private Boolean aiStatus;
+    private LocalDate DiaryDate;
 }
