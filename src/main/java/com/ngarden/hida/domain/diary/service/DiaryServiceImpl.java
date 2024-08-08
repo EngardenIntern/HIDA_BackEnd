@@ -1,7 +1,7 @@
 package com.ngarden.hida.domain.diary.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
+import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
@@ -45,20 +45,20 @@ public class DiaryServiceImpl implements DiaryService{
 
 
     @Override
-    public DiaryEntity saveDiary(DiaryCreateRequest diaryCreateRequest) {
+    public DiaryEntity saveDiary(DiarySaveDTO diarySaveDTO) {
 
-        Optional<UserEntity> userEntity = userRepository.findById(diaryCreateRequest.getUserId());
+        Optional<UserEntity> userEntity = userRepository.findById(diarySaveDTO.getUserId());
         if(userEntity.isEmpty()){
             throw new NoExistException("유저 정보가 없습니다.");
         }
 
         //diaryFilePath: "1\\diary", summaryFilePath: "1\\summary"
-        String diaryFilePath = userEntity.get().getUserId().toString() + "\\diary";
-        String summaryFilePath = userEntity.get().getUserId().toString() + "\\summary";
+        String diaryFilePath = userEntity.get().getUserId() + File.separator + "diary";
+        String summaryFilePath = userEntity.get().getUserId() + File.separator +"summary";
         //diaryFileName: "2012-02-12.json", summaryFileName: "2012-02.json"
-        String diaryFileName = diaryCreateRequest.getDiaryDate().toString() + ".json";
-        String summaryFileName = diaryCreateRequest.getDiaryDate().getYear() + "-" + diaryCreateRequest.getDiaryDate().getMonthValue() + ".json";
-        String diaryFileContent = createJsonByDiaryRequest(diaryCreateRequest);
+        String diaryFileName = diarySaveDTO.getDiaryDate().toString() + ".json";
+        String summaryFileName = diarySaveDTO.getDiaryDate().getYear() + "-" + diarySaveDTO.getDiaryDate().getMonthValue() + ".json";
+        String diaryFileContent = createJsonByDiaryRequest(diarySaveDTO);
 
         //파일 생성, 본문 쓰기
         File diaryFile = fileService.createOrOpenFileInPath(diaryFilePath, diaryFileName);
@@ -69,7 +69,7 @@ public class DiaryServiceImpl implements DiaryService{
         }
 
         fileService.writeStringInFile(diaryFile, diaryFileContent, FALSE);
-        fileService.writeStringInFile(summaryFile, diaryCreateRequest.getSummary(), TRUE);
+        fileService.writeStringInFile(summaryFile, diarySaveDTO.getSummary(), TRUE);
         /**
          *  Title / Detail / [Summary] / MoM / Emotions
          *
@@ -82,9 +82,9 @@ public class DiaryServiceImpl implements DiaryService{
 
         DiaryEntity diaryEntity = DiaryEntity.builder()
                 .user(userEntity.get())
-                .aiStatus(diaryCreateRequest.getAiStatus())
-                .diaryDate(diaryCreateRequest.getDiaryDate())
-                .title(diaryCreateRequest.getTitle())
+                .aiStatus(diarySaveDTO.getAiStatus())
+                .diaryDate(diarySaveDTO.getDiaryDate())
+                .title(diarySaveDTO.getTitle())
                 .build();
 
         return diaryRepository.save(diaryEntity);
@@ -98,7 +98,7 @@ public class DiaryServiceImpl implements DiaryService{
             throw new NoExistException("유저 정보가 없습니다.");
         }
 
-        String path = userId.toString() + "\\diary";
+        String path = userId.toString() + File.separator + "diary";
         String fileName = date.toString() + ".json";
         File file = fileService.createOrOpenFileInPath(path, fileName);
         String content = fileService.readStringInFile(file);
@@ -221,17 +221,17 @@ public class DiaryServiceImpl implements DiaryService{
      * 		"comment" : "~~~",
      *    }]
      * }
-     * @param diaryCreateRequest
+     * @param diarySaveDTO
      * @return diaryCreateRequest에 있는 내용으로 파일에 넣을 Json형식을 생성해서 반환
      */
     @Override
-    public String createJsonByDiaryRequest(DiaryCreateRequest diaryCreateRequest) {
+    public String createJsonByDiaryRequest(DiarySaveDTO diarySaveDTO) {
         JSONObject object = new JSONObject();
-        object.put("date", diaryCreateRequest.getDiaryDate());
-        object.put("title", diaryCreateRequest.getTitle());
-        object.put("detail", diaryCreateRequest.getDetail());
-        object.put("mom", diaryCreateRequest.getMom());
-        JSONArray emotions = new JSONArray(diaryCreateRequest.getEmotions());
+        object.put("date", diarySaveDTO.getDiaryDate());
+        object.put("title", diarySaveDTO.getTitle());
+        object.put("detail", diarySaveDTO.getDetail());
+        object.put("mom", diarySaveDTO.getMom());
+        JSONArray emotions = new JSONArray(diarySaveDTO.getEmotions());
         object.put("emotions", emotions);
 
         return object.toString();

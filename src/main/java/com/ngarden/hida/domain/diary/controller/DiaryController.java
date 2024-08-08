@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
+import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
@@ -12,13 +13,13 @@ import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.global.error.NoExistException;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -43,6 +44,7 @@ public class DiaryController {
     private String sadnessAssistantId;
 
     @PostMapping
+    @Operation(summary = "일기 저장", description = "일기를 저장하고, 일기 본문과 EMOTIONS, MOM을 보내준다.")
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
     ){
@@ -110,21 +112,26 @@ public class DiaryController {
             throw new RuntimeException(e);
         }
 
-        diaryCreateRequest.setAiStatus(Boolean.TRUE);
-        diaryCreateRequest.setMom(momResponse.getMessage());
-        //Summary는 월단위로 한번에 저장되어서 ","로 구분함
-        diaryCreateRequest.setSummary(summaryResponse.getMessage() + ",");
-        diaryCreateRequest.setEmotions(emotionsComment);
-
-        diaryService.saveDiary(diaryCreateRequest);
-
-        DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
-                .date(diaryCreateRequest.getDiaryDate())
+        DiarySaveDTO diarySaveDTO = DiarySaveDTO.builder()
+                .userId(diaryCreateRequest.getUserId())
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
-                .emotions(diaryCreateRequest.getEmotions())
-                .mom(diaryCreateRequest.getMom())
-                .aiStatus(diaryCreateRequest.getAiStatus())
+                .mom(momResponse.getMessage())
+                .summary(summaryResponse.getMessage() + ",")
+                .emotions(emotionsComment)
+                .aiStatus(Boolean.TRUE)
+                .DiaryDate(diaryCreateRequest.getDiaryDate())
+                .build();
+
+        diaryService.saveDiary(diarySaveDTO);
+
+        DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
+                .date(diarySaveDTO.getDiaryDate())
+                .title(diarySaveDTO.getTitle())
+                .detail(diarySaveDTO.getDetail())
+                .emotions(diarySaveDTO.getEmotions())
+                .mom(diarySaveDTO.getMom())
+                .aiStatus(diarySaveDTO.getAiStatus())
                 .userName(userEntity.get().getUserName())
                 .build();
 
@@ -132,6 +139,7 @@ public class DiaryController {
     }
 
     @GetMapping("/{userId}/{date}")
+    @Operation(summary = "특정 날짜 일기 조회", description = "해당 날짜의 일기 본문, EMOTION, MOM 내용을 반환한다. 일기 목록의 일기를 클릭했을 때 사용한다.")
     public ResponseEntity<DiaryDailyResponse> getDiaryDaily(
             @PathVariable("userId") Long userId,
             @PathVariable("date") LocalDate date
@@ -142,6 +150,7 @@ public class DiaryController {
     }
 
     @GetMapping("/{userId}")
+    @Operation(summary = "전체 일기 리스트 조회", description = "일기 리스트(날짜, 제목) 반환한다. 일기 목록을 볼 때 사용한다.")
     public ResponseEntity<DiaryListResponse> getDiaryList(
             @PathVariable("userId") Long userId
     ){

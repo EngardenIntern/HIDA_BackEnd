@@ -9,6 +9,7 @@ import com.ngarden.hida.externalapi.chatGPT.dto.request.CreateThreadAndRunReques
 import com.ngarden.hida.externalapi.chatGPT.dto.response.CreateThreadAndRunResponse;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
 import com.ngarden.hida.externalapi.chatGPT.service.GPTService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ public class GPTController {
     private final ChatGPTConfig chatGPTConfig;
 
     @PostMapping()
+    @Operation(summary = "[테스트용]Thread 생성 && 바로 Run", description = "GPT Assistant의 Thread를 생성하고 곧바로 Run 해준다. 현재는 MOM에게 요청을 보내도록 되어있고 서비스에서는 사용하지 않는다.")
     public ResponseEntity<CreateThreadAndRunResponse> createThread(
             @RequestBody() String message
     ) {
@@ -74,6 +76,7 @@ public class GPTController {
     }
 
     @GetMapping("/message/{thread_id}")
+    @Operation(summary = "[테스트용]Message 리스트 반환", description = "Thread Id를 주면 Message 리스트를 받아와준다. 서비스에서는 안씀")
     public ResponseEntity<List<MessageResponse>> getMessageList(
             @PathVariable("thread_id") String threadId
     ){
