@@ -1,14 +1,12 @@
 package com.ngarden.hida.domain.diary.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
 import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
 import com.ngarden.hida.domain.diary.service.DiaryService;
+import com.ngarden.hida.domain.file.FileService;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.service.UserService;
 import com.ngarden.hida.externalapi.chatGPT.dto.response.MessageResponse;
@@ -18,9 +16,13 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,6 +31,7 @@ import java.util.Optional;
 public class DiaryController {
     private final DiaryService diaryService;
     private final UserService userService;
+    private final FileService fileService;
 
     @Value("${OPENAI.ASSISTANT-ID.SUMMARY}")
     private String summaryAssistantId;
@@ -47,12 +50,12 @@ public class DiaryController {
     @Operation(summary = "일기 저장", description = "일기를 저장하고, 일기 본문과 EMOTIONS, MOM을 보내준다.")
     public ResponseEntity<DiaryDailyResponse> createDiary(
             @RequestBody DiaryCreateRequest diaryCreateRequest
-    ){
+    ) {
         //유저 있는지 확인
         Optional<UserEntity> userEntity = Optional.ofNullable(userService.findById(diaryCreateRequest.getUserId()));
         //TODO:파일 있는지 없는지 여기서 확인 하면 좋을듯
 
-        MessageResponse momResponse =  diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), momAssistantId);
+        MessageResponse momResponse = diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), momAssistantId);
         MessageResponse summaryResponse = diaryService.createDiaryByGpt(diaryCreateRequest.getDetail(), summaryAssistantId);
         MessageResponse emotionResponse = null;
         String emotionsComment = null;
@@ -60,70 +63,74 @@ public class DiaryController {
         JSONObject momObject = new JSONObject(JsonParsing(momResponse.getMessage()));
 
         summaryResponse.setMessage(JsonParsing(summaryResponse.getMessage()));
-        momResponse.setMessage(momObject.get("comment").toString());
+        momResponse.setMessage(momObject.getString("comment"));
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(summaryResponse.getMessage());
-            JsonNode summaryNode = rootNode.get("summary");
-            JsonNode majorEventNode = rootNode.get("majorEvent");
-//            StringBuilder summaryStringBuilder = new StringBuilder();
-//            StringBuilder emotionStringBuilder = new StringBuilder();
+        JSONObject summaryRootJsonObject = new JSONObject(summaryResponse.getMessage());
+        JSONArray summaryJsonArray = summaryRootJsonObject.getJSONArray("summary");
+        JSONArray majorEventJsonArray = summaryRootJsonObject.getJSONArray("majorEvent");
 
-            if( !majorEventNode.toString().equals("[]")) {
-                JSONArray jsonArrayEmotions = new JSONArray();
+        List<EmotionTypeEnum> emotionTypeEnumList = new ArrayList<>();
 
-                for(JsonNode majorEventElement : majorEventNode){
-                    String mainEmotion = majorEventElement.get("mainEmotion").asText();
-                    JSONObject jsonObjectEmotion = new JSONObject();
-                    // Assistant한테 보내기
+        if (!summaryRootJsonObject.toString().equals("[]")) {
+            JSONArray jsonArrayEmotions = new JSONArray();
 
-                    emotionResponse = switch (EmotionTypeEnum.getByEmotionKorean(mainEmotion)) {
-                        case JOY ->
-                                diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventElement, joyAssistantId);
-                        case SADNESS ->
-                                diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventElement, sadnessAssistantId);
-                        case ANGER ->
-                                diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventElement, angerAssistantId);
-                        case FEAR ->
-                                diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventElement, fearAssistantId);
-                        default -> emotionResponse;
-                    };
-                    //TODO:응답 받아서 COMMNET STRING에 추가
-                    assert emotionResponse != null;
+            for (int i = 0; i < majorEventJsonArray.length(); i++) {
+                JSONObject majorEventJSONObject = majorEventJsonArray.getJSONObject(i);
+                String mainEmotion = majorEventJSONObject.getString("mainEmotion");
+                JSONObject jsonObjectEmotion = new JSONObject();
+                // Assistant한테 보내기
+
+                emotionResponse = switch (EmotionTypeEnum.getByEmotionKorean(mainEmotion)) {
+                    case JOY -> {
+                        emotionTypeEnumList.add(EmotionTypeEnum.JOY);
+                        yield diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventJSONObject, joyAssistantId);
+                    }
+                    case SADNESS -> {
+                        emotionTypeEnumList.add(EmotionTypeEnum.SADNESS);
+                        yield diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventJSONObject, sadnessAssistantId);
+                    }
+                    case ANGER -> {
+                        emotionTypeEnumList.add(EmotionTypeEnum.ANGER);
+                        yield diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventJSONObject, angerAssistantId);
+                    }
+                    case FEAR -> {
+                        emotionTypeEnumList.add(EmotionTypeEnum.FEAR);
+                        yield diaryService.createDiaryByEmotionGpt(diaryCreateRequest.getDetail(), majorEventJSONObject, fearAssistantId);
+                    }
+                    default -> emotionResponse;
+                };
+                //TODO:응답 받아서 COMMNET STRING에 추가
+                assert emotionResponse != null;
 //                    emotionStringBuilder.append("{\"emotion\" : \"").append(EmotionTypeEnum.getByEmotionKorean(mainEmotion))
 //                            .append("\", \"comment\" : \"").append(emotionResponse.getMessage()).append("\"},");
-                    jsonObjectEmotion.put("emotion", EmotionTypeEnum.getByEmotionKorean(mainEmotion));
-                    jsonObjectEmotion.put("comment", emotionResponse.getMessage());
-                    jsonArrayEmotions.put(jsonObjectEmotion);
-                }
+                jsonObjectEmotion.put("emotion", EmotionTypeEnum.getByEmotionKorean(mainEmotion));
+                jsonObjectEmotion.put("comment", emotionResponse.getMessage());
+                jsonArrayEmotions.put(jsonObjectEmotion);
                 emotionsComment = jsonArrayEmotions.toString();
             }
-            else{
-                emotionsComment = "[{ " +
-                        "\"emotion\": \"Empty\"," +
-                        "\"comment\":\"Empty\"}]";
-            }
-            JSONObject jsonObjectSummary = new JSONObject();
-            jsonObjectSummary.put("date", diaryCreateRequest.getDiaryDate());
-            jsonObjectSummary.put("summary", summaryNode);
-            summaryResponse.setMessage(jsonObjectSummary.toString());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } else {
+            emotionsComment = "[{ " +
+                    "\"emotion\": \"Empty\"," +
+                    "\"comment\":\"Empty\"}]";
         }
+        JSONObject jsonObjectSummary = new JSONObject();
+        jsonObjectSummary.put("date", diaryCreateRequest.getDiaryDate());
+        jsonObjectSummary.put("summary", summaryJsonArray);
+        summaryResponse.setMessage(jsonObjectSummary.toString());
 
         DiarySaveDTO diarySaveDTO = DiarySaveDTO.builder()
                 .userId(diaryCreateRequest.getUserId())
                 .title(diaryCreateRequest.getTitle())
                 .detail(diaryCreateRequest.getDetail())
                 .mom(momResponse.getMessage())
-                .summary(summaryResponse.getMessage() + ",")
+                .summary(summaryResponse.getMessage())
                 .emotions(emotionsComment)
                 .aiStatus(Boolean.TRUE)
                 .DiaryDate(diaryCreateRequest.getDiaryDate())
                 .build();
 
         diaryService.saveDiary(diarySaveDTO);
+        userService.updateCounts(diaryCreateRequest.getUserId(), emotionTypeEnumList, 1);
 
         DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
                 .date(diarySaveDTO.getDiaryDate())
@@ -143,28 +150,38 @@ public class DiaryController {
     public ResponseEntity<DiaryDailyResponse> getDiaryDaily(
             @PathVariable("userId") Long userId,
             @PathVariable("date") LocalDate date
-    ){
+    ) {
         DiaryDailyResponse diaryDailyResponse = diaryService.getDiaryDaily(userId, date);
 
         return ResponseEntity.ok().body(diaryDailyResponse);
+    }
+
+    @DeleteMapping("/{userId}/{date}")
+    public ResponseEntity deleteDiary(
+            @PathVariable("userId") Long userId,
+            @PathVariable("date") LocalDate date
+    ) {
+        diaryService.deleteDiary(userId, date);
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/{userId}")
     @Operation(summary = "전체 일기 리스트 조회", description = "일기 리스트(날짜, 제목) 반환한다. 일기 목록을 볼 때 사용한다.")
     public ResponseEntity<DiaryListResponse> getDiaryList(
             @PathVariable("userId") Long userId
-    ){
+    ) {
         DiaryListResponse diaryListResponse = diaryService.getDiaryList(userId);
 
         return ResponseEntity.ok().body(diaryListResponse);
     }
-
     /**
      * String의 앞과 끝을 {~~}로 마감해서 반환해줌
+     *
      * @param message 파싱할 String
      * @return 파싱된 String
      */
-    private String JsonParsing(String message){
+    private String JsonParsing(String message) {
 
         int firstIndex = message.indexOf('{');
         int lastIndex = message.lastIndexOf('}');

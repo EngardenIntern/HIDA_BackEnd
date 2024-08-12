@@ -21,5 +21,7 @@ public interface FileService {
 
     String readStringInFile(File file);
 
+    void deleteFile(File file);
+
     void checkFileNotEmpty(File file);
 }

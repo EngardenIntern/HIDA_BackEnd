@@ -19,9 +19,9 @@ public class FileServiceImpl implements FileService{
         if (!directory.exists()) {
             try {
 
-                log.info("폴더 생성 여부 : " + directory.mkdirs() + ", 폴더 경로 : " + userFilePath);
+                log.info("폴더 생성 여부 : " + directory.mkdirs() + ", 폴더 경로 : " + directory.getAbsolutePath());
             } catch (Exception e) {
-                log.info("폴더를 생성하지 못했습니다." + " 폴더 경로 : " + userFilePath);
+                log.info("폴더를 생성하지 못했습니다." + " 폴더 경로 : " + directory.getAbsolutePath());
                 e.getStackTrace();
             }
         }
@@ -32,9 +32,9 @@ public class FileServiceImpl implements FileService{
         try{
             File file = new File(filePath);
             if (!file.exists()) {
-                log.info("파일 생성 여부 : " + file.createNewFile() + ", 파일 이름 : " + fileName);
+                log.info("파일 생성 여부 : " + file.createNewFile() + ", 파일 이름 : " + file.getAbsolutePath());
             } else {
-                log.info("파일 오픈, 파일 이름 : " + fileName);
+                log.info("파일 오픈, 파일 이름 : " + file.getAbsolutePath());
             }
             return file;
         } catch (IOException e) {
@@ -71,6 +71,21 @@ public class FileServiceImpl implements FileService{
             throw new RuntimeException(e);
         }
         return content.toString();
+    }
+
+    @Override
+    public void deleteFile(File file) {
+        String absolutePath = file.getAbsolutePath();
+
+        if (file.exists()) {
+            if (file.delete()) {
+                log.info("파일 삭제 성공: " + absolutePath);
+            } else {
+                log.info("파일 삭제 실패: " + absolutePath);
+            }
+        } else {
+            log.info("파일이 존재하지 않음: " + absolutePath);
+        }
     }
 
     @Override

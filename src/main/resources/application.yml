@@ -16,6 +16,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+  devtools:
+    remote:
+      restart:
+        enabled: false
 
 springdoc:
   swagger-ui:
@@ -35,3 +39,6 @@ springdoc:
   model-and-view-allowed: true
   paths-to-match:
     - /api/v1/**
+
+server:
+  port: 8081

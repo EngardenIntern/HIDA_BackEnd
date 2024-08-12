@@ -34,6 +34,22 @@ public class UserEntity extends BasicEntity {
     @Column(name = "user_status")
     private Boolean userStatus = Boolean.FALSE;
 
+    @Column(name = "diary_count")
+    private Long diaryCount;
+
+    @Column(name = "joy_count")
+    private Long joyCount;
+
+    @Column(name = "sadness_count")
+    private Long sadnessCount;
+
+    @Column(name = "anger_count")
+    private Long angerCount;
+
+    @Column(name = "fear_count")
+    private Long fearCount;
+
+    @Column(name = "refresh_token")
     private String refreshToken;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
