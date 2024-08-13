@@ -1,6 +1,6 @@
 package com.ngarden.hida.domain.user.service;
 
-import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
+import com.ngarden.hida.domain.diary.entity.EmotionEnum;
 import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
@@ -28,6 +28,7 @@ public class UserServiceImpl implements UserService {
                 .angerCount(0L)
                 .sadnessCount(0L)
                 .fearCount(0L)
+                .refreshToken(userCreateRequest.getRefreshToken())
                 .build();
 
         return userRepository.save(userEntity);
@@ -56,11 +57,11 @@ public class UserServiceImpl implements UserService {
      * @param amount 증감할 양을 준다. 보통 1 or -1일 것이다.
      */
     @Override
-    public void updateCounts(Long userId, List<EmotionTypeEnum> emotions, int amount) {
+    public void updateCounts(Long userId, List<EmotionEnum> emotions, int amount) {
         UserEntity user = findById(userId);
         user.setDiaryCount(user.getDiaryCount() + amount);
 
-        for (EmotionTypeEnum emotion : emotions) {
+        for (EmotionEnum emotion : emotions) {
             switch (emotion) {
                 case JOY -> user.setJoyCount(user.getJoyCount() + amount);
                 case ANGER -> user.setAngerCount(user.getAngerCount() + amount);

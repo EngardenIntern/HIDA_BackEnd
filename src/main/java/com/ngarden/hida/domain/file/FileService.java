@@ -1,7 +1,5 @@
 package com.ngarden.hida.domain.file;
 
-import com.ngarden.hida.global.error.NoExistException;
-
 import java.io.File;
 
 public interface FileService {

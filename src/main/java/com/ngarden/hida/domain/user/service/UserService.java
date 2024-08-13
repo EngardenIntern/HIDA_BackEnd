@@ -1,6 +1,6 @@
 package com.ngarden.hida.domain.user.service;
 
-import com.ngarden.hida.domain.diary.entity.EmotionTypeEnum;
+import com.ngarden.hida.domain.diary.entity.EmotionEnum;
 import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 
@@ -13,5 +13,5 @@ public interface UserService {
 
     UserEntity findById(Long userId);
 
-    void updateCounts(Long userId, List<EmotionTypeEnum> emotionTypeEnumList, int amount);
+    void updateCounts(Long userId, List<EmotionEnum> emotionEnumList, int amount);
 }

@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.Objects;
 
 @Getter
-public enum EmotionTypeEnum {
+public enum EmotionEnum {
     JOY("기쁜"),
     SADNESS("슬픈"),
     ANGER("화나는"),
@@ -14,7 +14,7 @@ public enum EmotionTypeEnum {
 
     private final String emotionKorean;
 
-    EmotionTypeEnum(String emotionKorean) {
+    EmotionEnum(String emotionKorean) {
         this.emotionKorean = emotionKorean;
     }
 
@@ -22,8 +22,8 @@ public enum EmotionTypeEnum {
         return emotionKorean;
     }
 
-    public static EmotionTypeEnum getByEmotionKorean(String korean) {
-        for (EmotionTypeEnum emotion : EmotionTypeEnum.values()) {
+    public static EmotionEnum getEmotionEnumByKorean(String korean) {
+        for (EmotionEnum emotion : EmotionEnum.values()) {
             if (Objects.equals(emotion.getEmotionKorean(), korean)) {
                 return emotion;
             }

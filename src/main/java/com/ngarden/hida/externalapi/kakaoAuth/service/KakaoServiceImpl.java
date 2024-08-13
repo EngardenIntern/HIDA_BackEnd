@@ -3,9 +3,12 @@ package com.ngarden.hida.externalapi.kakaoAuth.service;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
 import com.ngarden.hida.domain.user.dto.response.UserCreateResponse;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
+import com.ngarden.hida.domain.user.service.UserService;
+import com.ngarden.hida.domain.user.service.UserServiceImpl;
 import com.ngarden.hida.externalapi.kakaoAuth.dto.response.AuthLoginResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +28,14 @@ import java.net.URL;
 @Slf4j
 public class KakaoServiceImpl implements KakaoService{
 
+    private final UserServiceImpl userServiceImpl;
     @Value("${KAKAO.CLIENT-ID}")
     private String client_id;
 
     @Value("${KAKAO.REDIRECT-URI}")
     private String redirect_uri;
 
+    private final UserService userService;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -77,7 +82,6 @@ public class KakaoServiceImpl implements KakaoService{
         Long outhId = element.getAsJsonObject().get("id").getAsLong();
         JsonObject properties = element.getAsJsonObject().get("properties").getAsJsonObject();
         JsonObject kakao_account = element.getAsJsonObject().get("kakao_account").getAsJsonObject();
-
         String nickname = properties.getAsJsonObject().get("nickname").getAsString();
         String email = kakao_account.getAsJsonObject().get("email").getAsString();
 
@@ -100,14 +104,14 @@ public class KakaoServiceImpl implements KakaoService{
 
         String accessToken = jwtTokenProvider.createAccessToken(outhId);
         String refreshToken = jwtTokenProvider.createRefreshToken(outhId);
-        UserEntity user = UserEntity.builder()
-                .userName(nickname)
-                .email(email)
-                .outhId(outhId)
-                .refreshToken(refreshToken)
-                .build();
 
-        userRepository.save(user);
+        UserCreateRequest userCreateRequest = UserCreateRequest.builder()
+                .email(email)
+                .userName(nickname)
+                .refreshToken(refreshToken)
+                .outhId(outhId)
+                .build();
+        userService.createUser(userCreateRequest);
 
         return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken), HttpStatus.CREATED);
     }
