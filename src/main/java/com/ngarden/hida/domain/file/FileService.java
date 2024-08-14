@@ -1,7 +1,5 @@
 package com.ngarden.hida.domain.file;
 
-import com.ngarden.hida.global.error.NoExistException;
-
 import java.io.File;
 
 public interface FileService {
@@ -20,6 +18,8 @@ public interface FileService {
     void writeStringInFile(File file, String content, Boolean append);
 
     String readStringInFile(File file);
+
+    void deleteFile(File file);
 
     void checkFileNotEmpty(File file);
 }

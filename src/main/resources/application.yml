@@ -16,6 +16,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+  devtools:
+    remote:
+      restart:
+        enabled: false
 
 springdoc:
   swagger-ui:
