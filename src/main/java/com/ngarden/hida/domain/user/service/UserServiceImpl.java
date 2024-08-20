@@ -23,6 +23,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = UserEntity.builder()
                 .userName(userCreateRequest.getUserName())
                 .email(userCreateRequest.getEmail())
+                .outhId(userCreateRequest.getOuthId())
                 .diaryCount(0L)
                 .joyCount(0L)
                 .angerCount(0L)

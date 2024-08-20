@@ -85,6 +85,7 @@ public class KakaoServiceImpl implements KakaoService{
         String nickname = properties.getAsJsonObject().get("nickname").getAsString();
         String email = kakao_account.getAsJsonObject().get("email").getAsString();
 
+        System.out.println("outhId = " + outhId);
         UserEntity user = userRepository.findByOuthId(outhId);
 
         if(user == null)

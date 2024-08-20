@@ -21,6 +21,9 @@ spring:
       restart:
         enabled: false
 
+server:
+  ports: 8081
+
 springdoc:
   swagger-ui:
     groups-order: DESC
