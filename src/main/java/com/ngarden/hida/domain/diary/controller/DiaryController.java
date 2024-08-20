@@ -3,7 +3,6 @@ package com.ngarden.hida.domain.diary.controller;
 import com.ngarden.hida.domain.diary.dto.request.DiaryCreateRequest;
 import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
-import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.service.DiaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -11,11 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/diary")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class DiaryController {
     private final DiaryService diaryService;
 
@@ -61,10 +61,10 @@ public class DiaryController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "전체 일기 리스트 조회", description = "일기 리스트(날짜, 제목) 반환한다. 일기 목록을 볼 때 사용한다.")
-    public ResponseEntity<DiaryListResponse> getDiaryList(
+    public ResponseEntity<List<DiaryDailyResponse>> getDiaryList(
             @PathVariable("userId") Long userId
     ) {
-        DiaryListResponse diaryListResponse = diaryService.getDiaryList(userId);
+        List<DiaryDailyResponse> diaryListResponse = diaryService.getDiaryList(userId);
 
         return ResponseEntity.ok().body(diaryListResponse);
     }
