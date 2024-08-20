@@ -14,6 +14,7 @@ import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/kakao")
 @CrossOrigin(origins = "*")
 public class KakaoController {

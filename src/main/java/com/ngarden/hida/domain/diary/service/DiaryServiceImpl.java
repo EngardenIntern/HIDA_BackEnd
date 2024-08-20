@@ -2,7 +2,6 @@ package com.ngarden.hida.domain.diary.service;
 
 import com.ngarden.hida.domain.diary.dto.request.DiarySaveDTO;
 import com.ngarden.hida.domain.diary.dto.response.DiaryDailyResponse;
-import com.ngarden.hida.domain.diary.dto.response.DiaryListResponse;
 import com.ngarden.hida.domain.diary.entity.DiaryEntity;
 import com.ngarden.hida.domain.diary.entity.EmotionEnum;
 import com.ngarden.hida.domain.diary.repository.DiaryRepository;
@@ -208,10 +207,10 @@ public class DiaryServiceImpl implements DiaryService {
     }
 
     @Override
-    public DiaryListResponse getDiaryList(Long userId) {
+    public List<DiaryDailyResponse> getDiaryList(Long userId) {
         UserEntity userEntity = userService.findById(userId);
 
-        List<DiaryEntity> diaryEntityList = diaryRepository.findByUser(userEntity);
+        List<DiaryEntity> diaryEntityList = diaryRepository.findByUserOrderByDiaryDateDesc(userEntity);
         List<DiaryDailyResponse> diaryDailyResponseList = new ArrayList<>();
         for (DiaryEntity diaryEntity : diaryEntityList) {
             DiaryDailyResponse diaryDailyResponse = DiaryDailyResponse.builder()
@@ -224,10 +223,7 @@ public class DiaryServiceImpl implements DiaryService {
             diaryDailyResponseList.add(diaryDailyResponse);
         }
 
-        return DiaryListResponse.builder()
-                .diaryDailyResponseList(diaryDailyResponseList)
-                .userName(userEntity.getUserName())
-                .build();
+        return diaryDailyResponseList;
     }
 
     @Override

@@ -13,4 +13,6 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
     DiaryEntity findByUserAndDiaryDate(UserEntity userId, LocalDate date);
 
     List<DiaryEntity> findByUser(UserEntity userId);
+
+    List<DiaryEntity> findByUserOrderByDiaryDateDesc(UserEntity user);
 }
