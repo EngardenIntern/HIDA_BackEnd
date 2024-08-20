@@ -32,6 +32,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 @RequestMapping("api/v1/ai")
+@CrossOrigin(origins = "*")
 public class GPTController {
     private final GPTService gptService;
 

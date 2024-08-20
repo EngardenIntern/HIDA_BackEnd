@@ -15,6 +15,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("api/v1/diary")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class DiaryController {
     private final DiaryService diaryService;
 
