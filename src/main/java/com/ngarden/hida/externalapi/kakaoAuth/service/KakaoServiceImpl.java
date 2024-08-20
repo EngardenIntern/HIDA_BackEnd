@@ -50,7 +50,7 @@ public class KakaoServiceImpl implements KakaoService{
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getOuthId());
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, user.getRefreshToken()), HttpStatus.OK);
+        return new ResponseEntity<>(new AuthLoginResponse(accessToken, user.getRefreshToken(), user.getUserId()), HttpStatus.OK);
     }
 
     public ResponseEntity<HttpStatus> logout(Authentication authentication){
@@ -98,7 +98,7 @@ public class KakaoServiceImpl implements KakaoService{
 
         userRepository.save(user);
 
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken), HttpStatus.OK);
+        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken, user.getUserId()), HttpStatus.OK);
     }
 
     private ResponseEntity<AuthLoginResponse> register(Long outhId, String nickname, String email){
@@ -112,9 +112,9 @@ public class KakaoServiceImpl implements KakaoService{
                 .refreshToken(refreshToken)
                 .outhId(outhId)
                 .build();
-        userService.createUser(userCreateRequest);
+        UserEntity user = userService.createUser(userCreateRequest);
 
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken), HttpStatus.CREATED);
+        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken, user.getUserId()), HttpStatus.CREATED);
     }
 
     private JsonElement getJsonElementByAccessToken(String token) throws IOException {
