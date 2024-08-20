@@ -16,7 +16,6 @@ import java.util.List;
 @RequestMapping("api/v1/diary")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DiaryController {
     private final DiaryService diaryService;
 
