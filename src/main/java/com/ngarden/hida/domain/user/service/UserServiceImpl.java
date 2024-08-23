@@ -1,11 +1,16 @@
 package com.ngarden.hida.domain.user.service;
 
 import com.ngarden.hida.domain.diary.entity.EmotionEnum;
+import com.ngarden.hida.domain.user.dto.UserInfo;
 import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
+import com.ngarden.hida.domain.user.dto.response.UserResponse;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import com.ngarden.hida.domain.user.repository.UserRepository;
 import com.ngarden.hida.global.error.NoExistException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,5 +77,25 @@ public class UserServiceImpl implements UserService {
             }
         }
         userRepository.save(user);
+    }
+
+    @Override
+    public Long getLoggedInUserId(Authentication authentication) {
+        ResponseEntity<UserInfo> responseEntity = getUserInfo(authentication);
+
+        if (responseEntity.getStatusCode() != HttpStatus.OK || responseEntity.getBody() == null) {
+            throw new IllegalStateException("사용자 정보를 가져올 수 없습니다.");
+        }
+        return responseEntity.getBody().getUserId();
+    }
+
+    @Override
+    public ResponseEntity<UserInfo> getUserInfo(Authentication authentication) {
+        UserEntity user = userRepository.findByOuthId(Long.valueOf(authentication.getName()));
+
+        if(user == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(new UserInfo(user.getUserId(), user.getUserName(),user.getEmail(), user.getOuthId()), HttpStatus.OK);
     }
 }

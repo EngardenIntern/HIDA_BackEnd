@@ -10,5 +10,4 @@ public class AuthLoginResponse {
 
     //Patch 메서드에서는 입력한 RefreshToken 그대로 반환
     private String refreshToken;
-    private Long userId;
 }
