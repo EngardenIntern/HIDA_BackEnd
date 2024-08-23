@@ -39,6 +39,3 @@ springdoc:
   model-and-view-allowed: true
   paths-to-match:
     - /api/v1/**
-
-server:
-  port: 8081

@@ -15,7 +15,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    private static final Long accessTokenValidTime = Duration.ofHours(2).toMillis();
+    private static final Long accessTokenValidTime = Duration.ofSeconds(30).toMillis();
     private static final Long refreshTokenValidTime = Duration.ofDays(7).toMillis();
 
     @Value("${JWT.SECRET-KEY}")

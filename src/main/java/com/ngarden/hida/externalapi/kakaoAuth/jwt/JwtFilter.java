@@ -1,5 +1,7 @@
 package com.ngarden.hida.externalapi.kakaoAuth.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,8 +33,21 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         String token = authorization.split(" ")[1];
 
-        if(!jwtTokenProvider.isAccessToken(token)){
-            filterChain.doFilter(request, response);
+        try {
+            // JWT 토큰 유효성 검사
+            if (!jwtTokenProvider.isAccessToken(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰에 대한 처리
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token has expired");
+            return;
+        } catch (JwtException | IllegalArgumentException e) {
+            // 기타 JWT 관련 예외 처리
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid token");
             return;
         }
 
