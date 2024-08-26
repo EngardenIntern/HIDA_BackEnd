@@ -30,7 +30,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 @RequestMapping("api/v1/ai")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.161:3000"}, allowCredentials = "true")
 public class GPTController {
     private final GPTService gptService;
 

@@ -11,6 +11,10 @@ import com.ngarden.hida.domain.user.service.UserService;
 import com.ngarden.hida.domain.user.service.UserServiceImpl;
 import com.ngarden.hida.externalapi.kakaoAuth.dto.response.AuthLoginResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.jwt.JwtTokenProvider;
+import com.ngarden.hida.global.error.NoExistException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,21 +43,25 @@ public class KakaoServiceImpl implements KakaoService{
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public ResponseEntity<AuthLoginResponse> login(String code) throws IOException{
+    public AuthLoginResponse login(String code) throws IOException{
         return getKakaoUserIdByKakaoAccessToken(getKakaoAccessToken(code));
     }
 
-    public ResponseEntity<AuthLoginResponse> login(Authentication authentication) {
-        UserEntity user = userRepository.findByOuthId(Long.valueOf(authentication.getName()));
+    public ResponseEntity<AuthLoginResponse> refresh(String token) {
 
-        if(user == null)
+        UserEntity user = userRepository.findByRefreshToken(token);
+
+        if(user == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getOuthId());
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, user.getRefreshToken(), user.getUserId()), HttpStatus.OK);
+        AuthLoginResponse authLoginResponse = new AuthLoginResponse();
+        authLoginResponse.setAccessToken(accessToken);
+        return new ResponseEntity<>(authLoginResponse, HttpStatus.OK);
     }
 
-    public ResponseEntity<HttpStatus> logout(Authentication authentication){
+    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication){
         UserEntity user = userRepository.findByOuthId(Long.valueOf(authentication.getName()));
 
         if(user == null)
@@ -61,6 +69,11 @@ public class KakaoServiceImpl implements KakaoService{
 
         user.setRefreshToken(null);
         userRepository.save(user);
+
+        Cookie refreshToken = getCookie(request.getCookies(), "refreshToken");
+        refreshToken.setMaxAge(0); // 쿠키의 만료 시간을 0으로 설정하여 삭제
+        refreshToken.setPath("/"); // 쿠키의 경로를 설정 (쿠키 생성 시 설정했던 경로와 동일하게 설정해야 함)
+        response.addCookie(refreshToken);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -76,7 +89,26 @@ public class KakaoServiceImpl implements KakaoService{
         return new ResponseEntity<>(new UserCreateResponse(user.getUserId(), user.getUserName(),user.getEmail(), user.getOuthId()), HttpStatus.OK);
     }
 
-    private ResponseEntity<AuthLoginResponse> getKakaoUserIdByKakaoAccessToken(String kakaoAccessToken) throws IOException {
+    @Override
+    public ResponseEntity<AuthLoginResponse> makeCookieResponse(AuthLoginResponse authLoginResponse, HttpServletResponse response) {
+        // refreshToken을 쿠키에 저장
+        Cookie refreshTokenCookie = new Cookie("refreshToken", authLoginResponse.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);  // JavaScript에서 접근할 수 없도록 설정
+        refreshTokenCookie.setSecure(true);  // HTTPS에서만 전송되도록 설정
+        refreshTokenCookie.setPath("/");  // 쿠키가 애플리케이션의 모든 경로에 전송되도록 설정
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 쿠키 만료 기간 설정 (7일로 설정)
+
+        // 응답에 쿠키 추가
+        response.addCookie(refreshTokenCookie);
+
+        // accessToken만 응답 바디에 포함하여 반환
+        AuthLoginResponse responseBody = new AuthLoginResponse();
+        responseBody.setAccessToken(authLoginResponse.getAccessToken());
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    private AuthLoginResponse getKakaoUserIdByKakaoAccessToken(String kakaoAccessToken) throws IOException {
         JsonElement element = getJsonElementByAccessToken(kakaoAccessToken);
 
         Long outhId = element.getAsJsonObject().get("id").getAsLong();
@@ -98,10 +130,10 @@ public class KakaoServiceImpl implements KakaoService{
 
         userRepository.save(user);
 
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken, user.getUserId()), HttpStatus.OK);
+        return new AuthLoginResponse(accessToken, refreshToken);
     }
 
-    private ResponseEntity<AuthLoginResponse> register(Long outhId, String nickname, String email){
+    private AuthLoginResponse register(Long outhId, String nickname, String email){
 
         String accessToken = jwtTokenProvider.createAccessToken(outhId);
         String refreshToken = jwtTokenProvider.createRefreshToken(outhId);
@@ -114,7 +146,7 @@ public class KakaoServiceImpl implements KakaoService{
                 .build();
         UserEntity user = userService.createUser(userCreateRequest);
 
-        return new ResponseEntity<>(new AuthLoginResponse(accessToken, refreshToken, user.getUserId()), HttpStatus.CREATED);
+        return new AuthLoginResponse(accessToken, refreshToken);
     }
 
     private JsonElement getJsonElementByAccessToken(String token) throws IOException {
@@ -216,5 +248,19 @@ public class KakaoServiceImpl implements KakaoService{
         }
 
         return responseEntity.getBody().getUserId();
+    }
+
+    public Cookie getCookie(Cookie[] cookies, String key) {
+        if (cookies == null) {
+            throw new NoExistException("쿠키가 비어있습니다.");
+        }
+
+        for (Cookie c : cookies) {
+            if (c.getName().equals(key)) {
+                return c;
+            }
+        }
+        //없으면 예외
+        throw new NoExistException("쿠키에 " + key + "이 없습니다.");
     }
 }

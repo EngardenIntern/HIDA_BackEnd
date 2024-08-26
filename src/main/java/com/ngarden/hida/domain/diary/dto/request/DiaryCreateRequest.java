@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DiaryCreateRequest {
     private LocalDate DiaryDate;
-    private Long userId;
     private String title;
     private String detail;
 }

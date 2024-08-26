@@ -8,6 +8,7 @@ import com.ngarden.hida.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/user")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.161:3000"}, allowCredentials = "true")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -35,7 +36,7 @@ public class UserController {
         return ResponseEntity.ok().body(userCreateResponse);
     }
 
-    @GetMapping()
+    @GetMapping("/list")
     @Operation(summary = "전체 유저 리스트 반환", description = "전체 유저 리스트(유저 ID, 유저 이름, 유저 Email)를 반환해준다.")
     public ResponseEntity<List<UserResponse>> selectAllUser()
     {
@@ -59,10 +60,12 @@ public class UserController {
         return ResponseEntity.ok().body(userResponseList);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping()
     @Operation(summary = "유저 정보 반환", description = "유저 ID를 주면 해당하는 유저의 정보를 반환한다. 사용자가 로그인했을 때 사용한다.")
-    public ResponseEntity<UserResponse> getUser(@PathVariable("userId") Long userId)
+    public ResponseEntity<UserResponse> getUser(Authentication authentication)
     {
+        final Long userId = userService.getLoggedInUserId(authentication);
+
         UserEntity userById = userService.findById(userId);
         List<UserResponse> userResponseList = new ArrayList<>();
 
