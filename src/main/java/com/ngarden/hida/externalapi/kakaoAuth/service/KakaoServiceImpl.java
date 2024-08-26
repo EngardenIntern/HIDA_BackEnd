@@ -11,7 +11,9 @@ import com.ngarden.hida.domain.user.service.UserService;
 import com.ngarden.hida.domain.user.service.UserServiceImpl;
 import com.ngarden.hida.externalapi.kakaoAuth.dto.response.AuthLoginResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.jwt.JwtTokenProvider;
+import com.ngarden.hida.global.error.NoExistException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +61,7 @@ public class KakaoServiceImpl implements KakaoService{
         return new ResponseEntity<>(authLoginResponse, HttpStatus.OK);
     }
 
-    public ResponseEntity<HttpStatus> logout(Authentication authentication){
+    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication){
         UserEntity user = userRepository.findByOuthId(Long.valueOf(authentication.getName()));
 
         if(user == null)
@@ -67,6 +69,11 @@ public class KakaoServiceImpl implements KakaoService{
 
         user.setRefreshToken(null);
         userRepository.save(user);
+
+        Cookie refreshToken = getCookie(request.getCookies(), "refreshToken");
+        refreshToken.setMaxAge(0); // 쿠키의 만료 시간을 0으로 설정하여 삭제
+        refreshToken.setPath("/"); // 쿠키의 경로를 설정 (쿠키 생성 시 설정했던 경로와 동일하게 설정해야 함)
+        response.addCookie(refreshToken);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -241,5 +248,19 @@ public class KakaoServiceImpl implements KakaoService{
         }
 
         return responseEntity.getBody().getUserId();
+    }
+
+    public Cookie getCookie(Cookie[] cookies, String key) {
+        if (cookies == null) {
+            throw new NoExistException("쿠키가 비어있습니다.");
+        }
+
+        for (Cookie c : cookies) {
+            if (c.getName().equals(key)) {
+                return c;
+            }
+        }
+        //없으면 예외
+        throw new NoExistException("쿠키에 " + key + "이 없습니다.");
     }
 }

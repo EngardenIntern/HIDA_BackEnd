@@ -18,7 +18,7 @@ import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.161:3000"}, allowCredentials = "true")
 @RequestMapping("/api/v1/kakao")
 public class KakaoController {
     private final KakaoService kakaoService;
@@ -30,29 +30,19 @@ public class KakaoController {
         return kakaoService.makeCookieResponse(loginResponse, response);
     }
 
-    //Authorization 헤더에 RefreshToken
+    //쿠키에 RefreshToken
     @PatchMapping("/login")
     @Operation(summary = "Authorization 헤더에 RefreshToken")
     public ResponseEntity<AuthLoginResponse> login(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            throw new NoExistException("쿠키가 비어있습니다.");
-        }
-
-        for (Cookie c : cookies) {
-            if (c.getName().equals("refreshToken")) {
-                return kakaoService.refresh(c.getValue());
-            }
-        }
-        //없으면 예외
-        throw new NoExistException("refreshToken이 없습니다.");
+        Cookie refreshToken = kakaoService.getCookie(request.getCookies(), "refreshToken");
+        return kakaoService.refresh(refreshToken.getValue());
     }
 
     //서버에 남은 RefreshToken 삭제
     @Operation(summary = "서버에 남은 RefreshToken 삭제")
     @DeleteMapping("/login")
-    public ResponseEntity<HttpStatus> logout(Authentication authentication) {
-        return kakaoService.logout(authentication);
+    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        return kakaoService.logout(request, response, authentication);
     }
 
     //현재 로그인한 유저정보 조회
