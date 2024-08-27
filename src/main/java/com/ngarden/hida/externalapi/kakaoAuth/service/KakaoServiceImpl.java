@@ -61,7 +61,7 @@ public class KakaoServiceImpl implements KakaoService{
         return new ResponseEntity<>(authLoginResponse, HttpStatus.OK);
     }
 
-    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication){
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication){
         UserEntity user = userRepository.findByOuthId(Long.valueOf(authentication.getName()));
 
         if(user == null)
@@ -70,12 +70,16 @@ public class KakaoServiceImpl implements KakaoService{
         user.setRefreshToken(null);
         userRepository.save(user);
 
-        Cookie refreshToken = getCookie(request.getCookies(), "refreshToken");
+        Cookie[] cookies = request.getCookies();
+
+        Cookie refreshToken = getCookie(cookies, "refreshToken");
         refreshToken.setMaxAge(0); // 쿠키의 만료 시간을 0으로 설정하여 삭제
         refreshToken.setPath("/"); // 쿠키의 경로를 설정 (쿠키 생성 시 설정했던 경로와 동일하게 설정해야 함)
         response.addCookie(refreshToken);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        log.info("로그아웃 성공!");
+
+        return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
     }
 
     @Override
@@ -94,7 +98,7 @@ public class KakaoServiceImpl implements KakaoService{
         // refreshToken을 쿠키에 저장
         Cookie refreshTokenCookie = new Cookie("refreshToken", authLoginResponse.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);  // JavaScript에서 접근할 수 없도록 설정
-        refreshTokenCookie.setSecure(true);  // HTTPS에서만 전송되도록 설정
+        refreshTokenCookie.setSecure(false);  // HTTPS에서만 전송되도록 설정
         refreshTokenCookie.setPath("/");  // 쿠키가 애플리케이션의 모든 경로에 전송되도록 설정
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 쿠키 만료 기간 설정 (7일로 설정)
 

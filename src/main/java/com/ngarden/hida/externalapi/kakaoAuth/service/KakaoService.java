@@ -14,7 +14,7 @@ import java.io.IOException;
 public interface KakaoService {
     AuthLoginResponse login(String code) throws IOException;
     ResponseEntity<AuthLoginResponse> refresh(String token);
-    ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication);
+    ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication);
     ResponseEntity<UserCreateResponse> getUserCreateResponse(Authentication authentication);
     ResponseEntity<AuthLoginResponse> makeCookieResponse(AuthLoginResponse authLoginResponse, HttpServletResponse response);
     Cookie getCookie(Cookie[] cookies, String key);

@@ -3,7 +3,6 @@ package com.ngarden.hida.externalapi.kakaoAuth.controller;
 import com.ngarden.hida.domain.user.dto.response.UserCreateResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.dto.response.AuthLoginResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.service.KakaoService;
-import com.ngarden.hida.global.error.NoExistException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,7 +40,7 @@ public class KakaoController {
     //서버에 남은 RefreshToken 삭제
     @Operation(summary = "서버에 남은 RefreshToken 삭제")
     @DeleteMapping("/login")
-    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         return kakaoService.logout(request, response, authentication);
     }
 
