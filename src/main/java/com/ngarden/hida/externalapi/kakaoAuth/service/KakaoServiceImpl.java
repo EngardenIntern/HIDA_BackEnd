@@ -109,7 +109,7 @@ public class KakaoServiceImpl implements KakaoService{
         AuthLoginResponse responseBody = new AuthLoginResponse();
         responseBody.setAccessToken(authLoginResponse.getAccessToken());
 
-        return ResponseEntity.ok(responseBody);
+        return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
     private AuthLoginResponse getKakaoUserIdByKakaoAccessToken(String kakaoAccessToken) throws IOException {

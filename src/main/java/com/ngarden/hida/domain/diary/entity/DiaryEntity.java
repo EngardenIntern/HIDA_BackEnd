@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "DIARY")
-public class DiaryEntity {
+public class DiaryEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

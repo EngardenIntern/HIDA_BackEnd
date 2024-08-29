@@ -9,10 +9,11 @@ import java.io.*;
 @Slf4j
 @Service
 public class FileServiceImpl implements FileService{
-    private final String defaultFilePath = "/DiaryStorage";
+    private final String defaultFilePath = System.getProperty("user.home") + File.separator + "DiaryStorage";
 
     @Override
     public File createOrOpenFileInPath(String userFilePath, String fileName) {
+
         File directory = new File(defaultFilePath + File.separator + userFilePath);
 
         //디랙토리 있으면 생성
