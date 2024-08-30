@@ -19,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/diary")
-@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.161:3000"}, allowCredentials = "true")
 @RequiredArgsConstructor
 public class DiaryController {
     private final DiaryService diaryService;
