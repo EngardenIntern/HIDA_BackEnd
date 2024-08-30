@@ -3,7 +3,6 @@ package com.ngarden.hida.domain.user.service;
 import com.ngarden.hida.domain.diary.entity.EmotionEnum;
 import com.ngarden.hida.domain.user.dto.UserInfo;
 import com.ngarden.hida.domain.user.dto.request.UserCreateRequest;
-import com.ngarden.hida.domain.user.dto.response.UserResponse;
 import com.ngarden.hida.domain.user.entity.UserEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

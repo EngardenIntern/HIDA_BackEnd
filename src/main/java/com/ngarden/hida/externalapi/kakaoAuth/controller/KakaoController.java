@@ -3,13 +3,11 @@ package com.ngarden.hida.externalapi.kakaoAuth.controller;
 import com.ngarden.hida.domain.user.dto.response.UserCreateResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.dto.response.AuthLoginResponse;
 import com.ngarden.hida.externalapi.kakaoAuth.service.KakaoService;
-import com.ngarden.hida.global.error.NoExistException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +16,6 @@ import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.161:3000"}, allowCredentials = "true")
 @RequestMapping("/api/v1/kakao")
 public class KakaoController {
     private final KakaoService kakaoService;
@@ -41,7 +38,7 @@ public class KakaoController {
     //서버에 남은 RefreshToken 삭제
     @Operation(summary = "서버에 남은 RefreshToken 삭제")
     @DeleteMapping("/login")
-    public ResponseEntity<HttpStatus> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         return kakaoService.logout(request, response, authentication);
     }
 
